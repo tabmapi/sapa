@@ -219,10 +219,18 @@ class iso_cif_file:
       icl = self.iso_coordinate_label
       icf = self.iso_coordinate_formula
       f.write("\n")
+      xs = self.atom_site_fract_x
+      ys = self.atom_site_fract_y
+      zs = self.atom_site_fract_z
+      formula = []
+      for i in range(len(xs)):
+        formula.append(xs[i])
+        formula.append(ys[i])
+        formula.append(zs[i])
       for i in range(len(icl)):
         
-        formula = icf[i].strip("\"")
-        f.write("prm %s = %s + %s;\n"%(icl[i],formula,dc_labels[i])) 
+        #formula = icf[i].strip("\"")
+        f.write("prm %s = %s + %s;\n"%(icl[i],formula[i],dc_labels[i])) 
       atoms = self.atom_site_type_symbol
       f.write("\'Parameters for beq functions and scale. It is recommended to refine scale using average structure and fix within a range of that value \n")
       elements = set(atoms)
@@ -247,7 +255,7 @@ class iso_cif_file:
         f.write(" occ %s %s "%(atoms[i].strip("+-123456789"),occs[i]))      
         for j in range(len(elements)):
           if atoms[i].strip("+-123456789") == elements[j]:
-            bn = "beq_" + str(i)
+            bn = "beq_" + str(i) 
             f.write("beq_r_r2(%s,=%s;,d1,=rv;,d2,=r2v;) \n"%(bn,beq_vars[j]))
       f.write("scale = phase_scale; \n")
       f.write("\' Example macro to create output files. IRREP and VAR are replaced with a command line macro. \n")
