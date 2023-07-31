@@ -1,5 +1,5 @@
 # sapa
-This repository contains the files necessary for running symmetry-adapted PDF analysis with Topas v6
+This repository contains the files necessary for running symmetry-adapted PDF analysis with Topas v6 and v7
 
 read_isodisplace_cif
 
