@@ -6,7 +6,8 @@ import shutil as sh
 import glob
 import time
 import difflib as dl
-
+import h5py
+from zipfile import ZipFile
 
 # the class which can contain any cif file
 # IMPORTANT - the cif file must have a line at the end starting with a # symbol
@@ -203,25 +204,41 @@ class sapa:
         # print c_x, c_y, c_z
         return c_x, c_y, c_z
 
+    #searches CIF for irreps
 
     def irrep_list(self):
         irreps = []
-        for i in self.iso_displacivemode_label:
-            m = re.search("\](.+?)\(", i)
-            if m:
-                label = m.group(1)
-                irreps.append(label)
+        #check if CIF has displacive or occupancy modes
+        # irreps in iso_displacivemode_label always are between the first ] and ( characters
+
+        if hasattr(self, "iso_displacivemode_label"):
+            for i in self.iso_displacivemode_label:
+
+                m = re.search("\](.+?)\(", i)
+                if m:
+                    label = m.group(1)
+                    irreps.append(label)
+        elif hasattr(self, "iso_occupancymode_label"):
+            for i in self.iso_occupancymode_label:
+                m = re.search("\](.+?)\(", i)
+                if m:
+                    label = m.group(1)
+                    irreps.append(label)
         irreps = list(dict.fromkeys(irreps))
         return irreps
 
+    #construct control and instrument parameter section of input file
     def instrument_pars(self, cycles, path, filenameformat, isneutron, qmax, lor, dq, alpha, startx, finishx, isrebin,
-                        rebindx):
-        entry = "r_wp 0.0 r_exp 0.0 r_p 0.0 r_wp_dash 0.0 r_exp_dash 0.0 weighted_Durbin_Watson 0.0 gof 0.0 \n"
+                        rebindx, version):
+        entry = "'{{{ ===R-factors and control information==="
+        entry += "r_wp 0.0 r_exp 0.0 r_p 0.0 r_wp_dash 0.0 r_exp_dash 0.0 weighted_Durbin_Watson 0.0 gof 0.0 \n"
         entry += "iters 10000000 \n"
         entry += "chi2_convergence_criteria 0.001 \n"
         entry += "continue_after_convergence \n"
         entry += "prm dummy  0.00000` val_on_continue = If(Cycle == {0}, Get(iters) = 0, 0); \n".format(cycles)
+        entry += "'}}}"
         entry += "\n"
+        entry += "'{{{ ===File Input and Instrumental Parameters==="
         entry += " \' File input macro example. The ##n## is replaced when called. \n"
         entry += "macro file_in_(n) \n"
         if path.endswith("\\") == False:
@@ -234,8 +251,8 @@ class sapa:
         if isneutron == True:
             entry += "   neutron_data \n"
         entry += "pdf_data \n"
-        if isrebin == True:
-            # entry+= "   rebin_start_x_at 0 \n"
+        if version == "6":
+            entry+= "   rebin_start_x_at 0 \n"
             entry += "   rebin_with_dx_of %s \n" % rebindx
         entry += "start_X {0} \n".format(startx)
         entry += "finish_X {0} \n" .format(finishx)
@@ -247,48 +264,64 @@ class sapa:
         if alpha != 0:
             print("Warning: use of alpha parameter significantly slows down refinements")
             entry += " convolute_alpha(!alpha,{0}) \n".format(alpha)
+        entry += "'}}}"
         return entry
 
-    def phase(self, bin, lattice):
+    def phase(self, bin, lattice, refine_angles):
         zero = float(bin) / 2
         zero = str(zero)
-        entry = "\'=== PHASE INFORMATION === \n"
+        entry = "\'{{{=== PHASE INFORMATION === \n"
         entry += "      str \n"
-        entry += "         a lprm_a %s \n" % self.cell_length_a
-        if lattice == "C":
-            entry += "         b lprm_a %s \n" % self.cell_length_a
-            entry += "         c lprm_a %s \n" % self.cell_length_a
-        elif lattice == "T":
-            entry += "         b lprm_a %s \n" % self.cell_length_a
-            entry += "         c lprm_c %s \n" % self.cell_length_c
-        elif lattice == "O":
-            entry += "         b lprm_b %s \n" % self.cell_length_b
-            entry += "         c lprm_c %s \n" % self.cell_length_c
-        else:
-            print("Unexpected value for lattice argument. Expected C, T or O. Exiting...")
-            exit()
+        entry += f"         a lprm_a {self.cell_length_a} \n"
+        if lattice in ["C", "R"]:
+            entry += "         b lprm_b = lprm_a; \n"
+            entry += "         c lprm_c = lprm_a; \n"
+        elif lattice in ["T", "H"]:
+            entry += "         b lprm_b = lprm_a; \n"
+            entry += f"         c lprm_c {self.cell_length_c} \n"
+        elif lattice in ["O", "TC", "M"]:
+            entry += f"         b lprm_b {self.cell_length_b} \n"
+            entry += f"         c lprm_c {self.cell_length_c} \n"
 
-        entry += "         al %s \n" % self.cell_angle_alpha
-        entry += "         be %s \n" % self.cell_angle_beta
-        entry += "         ga %s \n" % self.cell_angle_gamma
+        else:
+            print("Unexpected value for lattice argument. Expected C, T, R, H, TC, M or O. Exiting...")
+            
+
+        if refine_angles == False:
+            entry += f"         al !lprm_al {self.cell_angle_alpha} \n"
+            entry += f"         be !lprm_be {self.cell_angle_beta} \n"
+            entry += f"         ga !lprm_ga {self.cell_angle_gamma} \n"
+
+        elif refine_angles == True:
+            entry += f"         al lprm_al {self.cell_angle_alpha} \n"
+            entry += f"         be lprm_be {self.cell_angle_beta} \n"
+            entry += f"         ga lprm_ga {self.cell_angle_gamma} \n"
+
+
         entry += "         volume %s \n" % self.cell_volume
         entry += "         space_group %s \n" % self.symmetry_Int_Tables_number
         entry += "         pdf_zero -%s \n" % zero
+        entry += "'}}}"
         entry += "\n \n \n \n"
         return entry
 
     def modes(self):
         irreps = self.irrep_list()
-        entry = "\'====== MODE DEFINITIONS ===== \n"
+        entry = "\'{{{====== MODE DEFINITIONS ===== \n"
+        # creating the #ifdef and #ifndef blocks for each irrep
+        # position in iso_label list of each irrep corresponds to position in transformation matrix
+        # prm name is a{column}
+
         iso_label = self.iso_displacivemode_label
         for irrep in irreps:
+            entry += "'{{{" + f"==={irrep}=== \n"
             entry += "#ifndef %s \n" % irrep
             for i in range(len(iso_label)):
                 m = re.search("\](.+?)\(", iso_label[i])
                 if m:
                     label = m.group(1)
                     if irrep == label:
-                        entry += "prm !a%s 0.00000 min -1 max 1 val_on_continue = Rand(-0.05,0.05); \' %s \n" % (
+                        entry += "prm !a%s 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' %s \n" % (
                         i + 1, iso_label[i])
             entry += "#endif \n"
             entry += "#ifdef %s \n" % irrep
@@ -297,11 +330,16 @@ class sapa:
                 if m:
                     label = m.group(1)
                     if irrep == label:
-                        entry += "prm a%s 0.00000 min -1 max 1 val_on_continue = Rand(-0.05,0.05); \' %s \n" % (
+                        entry += "prm a%s 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' %s \n" % (
                         i + 1, iso_label[i])
             entry += "#endif \n"
+            entry += "'}}} \n"
+        entry += "'}}}"
         entry += "\n \n \n \n"
-        entry += "\'===== MODE TO DELTAS TRANSFORMATION ===== \n"
+        entry += "\'{{{===== MODE TO DELTAS TRANSFORMATION ===== \n"
+        # write the matrix transformation
+        # for each deltacoordinate, e.g. site1_dx, the script finds the non-zero columns and converts to parameter names
+        # deltacoord_j = sum_i(dmval_ij*a_i)
         dm_rows = self.iso_displacivemodematrix_row
         dm_cols = self.iso_displacivemodematrix_col
         dm_vals = self.iso_displacivemodematrix_value
@@ -328,6 +366,10 @@ class sapa:
                         entry += " + %s*a%s " % (dc_vals[j], dc_cols[j])
                     else:
                         entry += " %s*a%s " % (dc_vals[j], dc_cols[j])
+        entry += "'}}}"
+        entry += "\n"
+        entry += "'{{{ ===Site Definitions==="
+        # define site coordinates, e.g. site_distorted_x = site_x + site_dx
         icl = self.iso_coordinate_label
         print(len(icl))
         icf = self.iso_coordinate_formula
@@ -346,6 +388,7 @@ class sapa:
             entry += "prm %s = %s + %s;\n" % (icl[i], formula[i], dc_labels[i])
 
         entry += "\n"
+        #get list of elements involved - this is used for beq function
         atoms = self.atom_site_type_symbol
         elements = set(atoms)
         elements = list(elements)
@@ -372,31 +415,47 @@ class sapa:
                     bn = "beq_" + str(i)
                     entry += "beq_r_r2(%s,=%s;,d1,=rv;,d2,=r2v;) \n" % (bn, beq_vars[j])
         entry += "scale = phase_scale; \n"
+        entry += "'}}} \n"
         return entry
 
     def output(self, sample):
-        entry = "macro file_out_(m,n) \n { \n m##_%s_##n##_out.txt \n } \n" % sample
-        entry += "out_prm_vals_on_convergence file_out_(IRREP,VAR) \n"
+        entry = "'{{{ ===Output Macros=== \n"
+        entry += f"macro ycalc_out_(u,v) \n {{ \n {self.sample}_##u##_##v##_ycalc.txt \n }} \n \n"
+        entry += "Out_X_Ycalc(ycalc_out_(IRREP,VAR)) \n \n"
+        entry += f"macro yobs_out_(u,v) \n {{ \n {self.sample}_##u##_##v##_yobs.txt \n }} \n \n"
+        entry += "Out_X_Yobs(yobs_out_(IRREP,VAR)) \n \n"
+        entry += "macro file_out_(m,n) \n { \n m##_%s_##n##_out.txt \n } \n" % sample
+        entry += "out_prm_vals_on_convergence file_out_(IRREP,VAR) out_prm_vals_dependents_filter \"lprm_*\" \n"
+        entry += "'}}}"
+
         return entry
 
     def write_inp(self, sample, filenameformat, isneutron, qmax, dq, startx, finishx, lattice, path=os.getcwd(), cycles=300,
-                  isrebin=False, bin="0.02", lor=0, alpha=0, filename="batch_modes.inp"):
+                  isrebin=False, bin="0.02", lor=0, alpha=0, filename="batch_modes.inp", refine_angles=False, version = "7", singlemode = False):
         print("Creating input file...")
         self.filename = filename
         self.sample = sample
 
         entry = self.instrument_pars(cycles, path, filenameformat, isneutron, qmax, lor, dq, alpha,
-                                     startx, finishx, isrebin, rebindx=bin)
-        entry += self.phase(bin, lattice)
-        entry += self.modes()
-
-        entry += self.output(sample)
+                                     startx, finishx, isrebin, rebindx=bin, version=version)
+        entry += self.phase(bin, lattice, refine_angles)
+        if singlemode:
+            entry += self.modes_single()
+            entry += self.output_single(sample)
+        else:
+            entry += self.modes()
+            entry += self.output(sample)
         f = open(filename, "w")
         f.write(entry)
         f.close()
+        self.meta = f"Run {sample} was executed with a fitting range of {startx}-{finishx} angstrom, with {cycles} cycles per irrep. Instrumental values of qmax = {qmax}, dq = {dq}, lor = {lor} and alpha = {alpha}."
         print("...%s written" % filename)
 
-    def execute(self, temps, verbose=False):
+    def execute(self, temps, var_dict = {}, verbose=False, skip_irreps = []):
+        if type(temps) is not list:
+            temps = list(temps)
+        temps = [str(x) for x in temps]
+        self.temps = temps
         print("Finding Topas executables...")
         for root, dirs, files in os.walk("C:\\", topdown=False):
             for name in files:
@@ -414,6 +473,8 @@ class sapa:
 
         irreps = self.irrep_list()
         irreps.append("nomodes")
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
 
         inppath = os.path.join(self.wd, self.filename)
 
@@ -428,22 +489,26 @@ class sapa:
         lines = f.readlines()
         f.close()
         print("Executing...")
+
         totaltime = 0
         for i in range(1, len(lines)):
+            ex_string = topaspath + " " + "\"" + inppath + "\""
             args = lines[i].split()
             temp = args[0]
             irrep = args[1]
             start = time.time()
             print("Executing irrep %s for temp %s" % (irrep, temp))
+            ex_string += f' \" macro IRREP {{{irrep}}} macro VAR {{{temp}}} '
+            if var_dict:
+                for key in var_dict:
+                    in_val = var_dict[key][temps.index(temp)]
+                    ex_string += f' macro {key} {{{in_val}}}'
+            ex_string += f'#define {irrep} \"'
             if verbose == False:
-                os.system(
-                    topaspath + " " + inppath + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} #define {0} \" > NUL ".format(
-                        irrep, temp))
+                os.system(ex_string + " > NUL ")
             else:
-                os.system(
-                    topaspath + " " + inppath + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} #define {0} \" ".format(irrep,
-                                                                                                                 temp))
-            lines[i] = "{0}  {1}  True \n".format(temp, irrep)
+                os.system(ex_string)
+            lines[i] = f"{temp}  {irrep}  True \n"
             with open("%s_monitor.txt" % self.sample, "w") as file:
                 file.writelines(lines)
             end = time.time()
@@ -482,12 +547,14 @@ class sapa:
         inppath = os.path.join(wd, self.filename)
         totaltime = 0
         print("Restarting...")
+        j = 0
         for i in range(1, len(lines)):
             args = lines[i].split()
             temp = args[0]
             irrep = args[1]
 
             if args[2] == "False":
+                j += 1
                 start = time.time()
                 print("Executing irrep %s for temp %s" % (irrep, temp))
                 os.system(topaspath + " " + inppath + "   \" macro IRREP {%s} macro VAR {%s} #define %s \" > NUL" % (
@@ -498,7 +565,7 @@ class sapa:
                 end = time.time()
                 processtime = end - start
                 totaltime += processtime
-                averagetime = totaltime / float(i)
+                averagetime = totaltime / float(j)
                 remainingtime = (averagetime * (len(lines) - i - 1)) / 3600
                 print(
                     "Completed irrep {0} for temp {1}. Process took {2}s ({3} minutes)".format(irrep, temp, processtime,
@@ -527,3 +594,815 @@ class sapa:
         end_string = string[end_min:]
         print(start_string, end_string)
         return start_string, end_string
+
+    def create_hdf5(self,temps, skip_irreps = []):
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name to create hdf file for: ")
+
+        if not hasattr(self, "meta"):
+            self.meta = input("Enter some information to store to remind you of parameters used in this sapa run: ")
+
+        hdf = h5py.File(f"{self.sample}.hdf5","w")
+        hdf.attrs["metadata"] = self.meta
+        tempsf = [float(x) for x in temps]
+        temp_arr = np.asarray(tempsf)
+        hdf["temps"] = temp_arr
+        irreps = self.irrep_list()
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+
+        hdf.attrs["irreps"] = irreps
+        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep="\s+", index_col=None,
+                              names=["x", "ycalc"])
+
+        hdf.create_dataset("r_vals", data = np.asarray(df_calc["x"]))
+
+        grp = hdf.create_group("nomodes")
+        grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
+        grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
+        for i in range(len(temps)):
+            temp = temps[i]
+            temp = temps[i]
+            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                               names=["x", "ycalc"], header=None)
+            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep="\s+", index_col=None,
+                               names=["x", "yobs"], header=None)
+            dset = grp["ycalc"]
+            dset[i, :] = np.asarray(df_c["ycalc"])
+            dset = grp["yobs"]
+            dset[i, :] = np.asarray(df_o["yobs"])
+
+
+        for irrep in irreps:
+            grp = hdf.create_group(f"{irrep}")
+            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt",sep="\s+",index_col=None)
+            dfn = dfn.drop([0])
+            num_cycles = len(dfn["Rwp"])
+            dfn = dfn.drop(["Cycle", "Iter"], axis=1)
+            prms = dfn.columns
+            for prm in prms:
+                grp.create_dataset(prm, (len(temps), num_cycles))
+                hdf[f"{irrep}/{prm}"].dims[0].label = "Temps"
+            grp.create_dataset("delrwp", (len(temps), num_cycles))
+            if hasattr(self, "iso_displacivemodenorm_value") and not hasattr(self, "iso_occupancymodenorm_value"):
+                regex = re.compile(r"^a[0-9]+")
+                mode_prms = [x for x in prms if regex.search(x)]
+                mode_inds = [int(str(x).lstrip("a")) - 1 for x in mode_prms]
+                norms = []
+                for i in mode_inds:
+                    norms.append(float(self.iso_displacivemodenorm_value[i]))
+            elif hasattr(self, "iso_occupancymodenorm_value") and not hasattr(self, "iso_displacivemodenorm_value"):
+                regex = re.compile(r"^b[0-9]+")
+                mode_prms = [x for x in prms if regex.search(x)]
+                mode_inds = [int(str(x).lstrip("b")) - 1 for x in mode_prms]
+                norms = []
+                for i in mode_inds:
+                    norms.append(float(self.iso_occupancymodenorm_value[i]))
+            norms = np.asarray(norms)
+            #print(irrep, norms)
+            grp.create_dataset("norms", data=norms)
+            grp.create_dataset("mode_amps", (len(temps), num_cycles))
+            grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
+            grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
+
+
+
+            for i in range(len(temps)):
+                temp = temps[i]
+                fn = f"{irrep}_{self.sample}_{temp}_out.txt"
+                df = pd.read_csv(fn,sep="\s+",index_col=None)
+                df = df.drop([0])
+                df = df.sort_values("Rwp")
+                df.index = range(len(df.index))
+                df = df.drop(["Cycle", "Iter"], axis = 1)
+                names = df.columns
+                for name in names:
+                    data = np.asarray(df[name])
+                    #print(name, temp,data.shape)
+                    dset = grp[name]
+                    dset[i,0:len(data)] = data
+
+                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt",sep="\s+",index_col=None)
+                nmdf = nmdf.drop([0])
+                nmdf = nmdf.sort_values("Rwp")
+                nmdf.index = range(len(nmdf.index))
+                nm_rwp = nmdf.at[0, "Rwp"]
+
+                rwp = np.asarray(df["Rwp"])
+                delrwp = rwp - nm_rwp
+                dset = grp["delrwp"]
+                dset[i,0:len(delrwp)] = delrwp
+
+            for i in range(len(temps)):
+                temp = temps[i]
+                fn = f"{irrep}_{self.sample}_{temp}_out.txt"
+                df = pd.read_csv(fn, sep="\s+", index_col=None)
+                df = df.drop([0])
+                df = df.sort_values("Rwp")
+                df.index = range(len(df.index))
+                df["mode_amps"] = (df[mode_prms[0]] / norms[0]) ** 2
+                for j in range(1, len(norms)):
+                    df["mode_amps"] += (df[mode_prms[j]] / norms[j]) ** 2
+                df["mode_amps"] = np.sqrt(df["mode_amps"])
+                dset = grp["mode_amps"]
+                ma_data = np.asarray(df["mode_amps"])
+                dset[i,0:len(ma_data)] = ma_data
+
+
+            for i in range(len(temps)):
+                temp = temps[i]
+                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                                      names=["x", "ycalc"], header=None)
+                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep="\s+", index_col=None,
+                                      names=["x", "yobs"], header=None)
+                dset = grp["ycalc"]
+                dset[i,:] = np.asarray(df_c["ycalc"])
+                dset = grp["yobs"]
+                dset[i,:] = np.asarray(df_o["yobs"])
+
+
+
+
+
+
+
+
+
+
+
+        self.temps = temps
+        hdf.close()
+
+    def cleanup(self, create_zip = True, skip_irreps = []):
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name to clean up: ")
+
+        if not hasattr(self, "temps"):
+            self.temps = input(f"Enter temps for sample {self.sample}: ")
+
+        irreps = self.irrep_list()
+        irreps.append("nomodes")
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+
+        if create_zip:
+            print("Creating zip file...")
+            zipObj = ZipFile(f"{self.sample}.zip","w")
+
+            for irrep in irreps:
+                for temp in self.temps:
+                    zipObj.write(f"{irrep}_{self.sample}_{temp}_out.txt")
+                    zipObj.write(f"{self.sample}_{irrep}_{temp}_ycalc.txt")
+                    zipObj.write(f"{self.sample}_{irrep}_{temp}_yobs.txt")
+            zipObj.close()
+            print("...Zip file written.")
+
+
+        print("Deleting .txt files...")
+        for irrep in irreps:
+            for temp in self.temps:
+                os.remove(f"{irrep}_{self.sample}_{temp}_out.txt")
+                os.remove(f"{self.sample}_{irrep}_{temp}_ycalc.txt")
+                os.remove(f"{self.sample}_{irrep}_{temp}_yobs.txt")
+        print("...Clean up complete.")
+
+
+    def file_check(self, temps, cycles=300, verbose=True, skip_irreps = []):
+        f = open(f"{self.sample}_rerun.txt","w")
+        f.write("Temp Irrep Re-ran \n")
+        irreps = self.irrep_list()
+        irreps.append("nomodes")
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+        for temp in temps:
+            for irrep in irreps:
+                #if not (os.path.isfile(f"{self.sample}_{irrep}_{temp}_ycalc.txt") and os.path.isfile(f"{self.sample}_{irrep}_{temp}_yobs.txt")):
+                    #f.write(f"{temp} {irrep} False \n")
+                if os.path.exists(f"{irrep}_{self.sample}_{temp}_out.txt"):
+                    outf = open(f"{irrep}_{self.sample}_{temp}_out.txt","r")
+                    nlines = len(outf.readlines())
+                    #Topas does a zeroth cycle that is discarded in sapa when writing hdf5 file
+                    #nlines should = cycles + 2 due to zeroth cycle and header
+                    if nlines != cycles + 2:
+                        f.write(f"{temp} {irrep} False \n")
+
+                if not os.path.exists(f"{irrep}_{self.sample}_{temp}_out.txt"):
+                    f.write(f"{temp} {irrep} False \n")
+        f.close()
+
+        f = open(f"{self.sample}_rerun.txt", "r")
+        lines = f.readlines()
+        f.close()
+
+        if len(lines) == 1:
+            print("Files checked, found no issues!")
+
+        else:
+
+            print("Finding Topas executables...")
+            for root, dirs, files in os.walk("C:\\", topdown=False):
+                for name in files:
+                    if name == "tc.exe":
+                        topaspath = os.path.join(root, name)
+                        dirs[:] = []
+                        break
+            if not hasattr(self, "filename"):
+                self.filename = input("Enter filename: ")
+                if self.filename.endswith(".inp") == False:
+                    self.filename += ".inp"
+
+            inppath = os.path.join(self.wd, self.filename)
+
+
+            print("Executing...")
+            totaltime = 0
+            for i in range(1, len(lines)):
+                args = lines[i].split()
+                temp = args[0]
+                irrep = args[1]
+                start = time.time()
+                print("Executing irrep %s for temp %s" % (irrep, temp))
+                if verbose == False:
+                    os.system(
+                        topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} #define {0} \" > NUL ".format(
+                            irrep, temp))
+                else:
+                    os.system(
+                        topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} #define {0} \" ".format(
+                            irrep,
+                            temp))
+                lines[i] = "{0}  {1}  True \n".format(temp, irrep)
+                with open("%s_monitor.txt" % self.sample, "w") as file:
+                    file.writelines(lines)
+                end = time.time()
+                processtime = end - start
+                totaltime += processtime
+                averagetime = totaltime / float(i)
+                remainingtime = (averagetime * (len(lines) - i - 1)) / 3600
+                print("Completed irrep {0} for temp {1}. Process took {2}s ({3} minutes)".format(irrep, temp, processtime,
+                                                                                                 processtime / 60))
+                print("Estimated {0} hours to completion.".format(remainingtime))
+
+    def execute_occ(self, temps, occupancies, verbose=False, skip_irreps = []):
+        # IMPORTANT: temps is just a placeholder name, it should be a list of filename components that complete the filename format
+        self.temps = temps
+        print("Finding Topas executables...")
+        for root, dirs, files in os.walk("C:\\", topdown=False):
+            for name in files:
+                if name == "tc.exe":
+                    topaspath = os.path.join(root, name)
+                    dirs[:] = []
+                    break
+        if not hasattr(self, "filename"):
+            self.filename = input("Enter filename: ")
+            if self.filename.endswith(".inp") == False:
+                self.filename += ".inp"
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name for this run: ")
+
+        irreps = self.irrep_list()
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+        irreps.append("nomodes")
+
+        inppath = os.path.join(self.wd, self.filename)
+
+        print("Creating Monitoring File...")
+        f = open("%s_monitor.txt" % self.sample, "w")
+        f.write("Occupancy   Irrep   Executed \n")
+        for temp in temps:
+            for irrep in irreps:
+                f.write("{0} {1}  False \n".format(temp, irrep))
+        f.close()
+        f = open("%s_monitor.txt" % self.sample, "r")
+        lines = f.readlines()
+        f.close()
+        ex_string =  topaspath + " " + "\"" + inppath + "\""
+        print("Executing...")
+        totaltime = 0
+        for i in range(1, len(lines)):
+            args = lines[i].split()
+            temp = args[0]
+            occ = occupancies[temps.index(temp)]
+            irrep = args[1]
+            start = time.time()
+            print("Executing irrep %s for temp %s" % (irrep, temp))
+            if verbose == False:
+                os.system(
+                    ex_string + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} macro OCC {{{2}}} #define {0} \" > NUL ".format(
+                        irrep, temp, occ))
+            else:
+                os.system(
+                    ex_string + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} macro OCC {{{2}}} #define {0} \" ".format(
+                        irrep,
+                        temp, occ))
+            lines[i] = "{0}  {1}  True \n".format(temp, irrep)
+            with open("%s_monitor.txt" % self.sample, "w") as file:
+                file.writelines(lines)
+            end = time.time()
+            processtime = end - start
+            totaltime += processtime
+            averagetime = totaltime / float(i)
+            remainingtime = (averagetime * (len(lines) - i - 1)) / 3600
+            print("Completed irrep {0} for temp {1}. Process took {2}s ({3} minutes)".format(irrep, temp, processtime,
+                                                                                             processtime / 60))
+            print("Estimated {0} hours to completion.".format(remainingtime))
+
+    def modes_single(self):
+        irreps = self.irrep_list()
+        entry = "\'{{{====== MODE DEFINITIONS ===== \n"
+        iso_label = self.iso_displacivemode_label
+        for i in range(len(iso_label)):
+            entry += f'#ifndef mode{i+1} \n'
+            entry += f'prm !a{i+1} 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' {iso_label[i]} \n'
+            entry += '#endif \n'
+            entry += f'#ifdef mode{i + 1} \n'
+            entry += f'prm a{i + 1} 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' {iso_label[i]} \n'
+            entry += '#endif \n'
+
+        entry += "'}}}"
+        entry += "\n \n \n \n"
+        entry += "\'{{{===== MODE TO DELTAS TRANSFORMATION ===== \n"
+        # write the matrix transformation
+        # for each deltacoordinate, e.g. site1_dx, the script finds the non-zero columns and converts to parameter names
+        # deltacoord_j = sum_i(dmval_ij*a_i)
+        dm_rows = self.iso_displacivemodematrix_row
+        dm_cols = self.iso_displacivemodematrix_col
+        dm_vals = self.iso_displacivemodematrix_value
+        dc_labels = self.iso_deltacoordinate_label
+
+        for i in range(len(dc_labels)):
+            dc_cols = []
+            dc_vals = []
+            entry += "prm %s =" % dc_labels[i]
+            for j in range(len(dm_rows)):
+
+                if int(dm_rows[j]) == i + 1:
+                    dc_cols.append(dm_cols[j])
+                    dc_vals.append(dm_vals[j])
+
+            for j in range(len(dc_cols)):
+                if j == len(dc_cols) - 1:
+                    if float(dc_vals[j]) > 0:
+                        entry += " + %s*a%s ;: 0.0 \n" % (dc_vals[j], dc_cols[j])
+                    else:
+                        entry += " %s*a%s ;: 0.0\n" % (dc_vals[j], dc_cols[j])
+                else:
+                    if float(dc_vals[j]) > 0:
+                        entry += " + %s*a%s " % (dc_vals[j], dc_cols[j])
+                    else:
+                        entry += " %s*a%s " % (dc_vals[j], dc_cols[j])
+        entry += "'}}}"
+        entry += "\n"
+        entry += "'{{{ ===Site Definitions==="
+        # define site coordinates, e.g. site_distorted_x = site_x + site_dx
+        icl = self.iso_coordinate_label
+        print(len(icl))
+        icf = self.iso_coordinate_formula
+        entry += "\n"
+        xs = self.atom_site_fract_x
+        ys = self.atom_site_fract_y
+        zs = self.atom_site_fract_z
+        formula = []
+        for i in range(len(xs)):
+            formula.append(xs[i])
+            formula.append(ys[i])
+            formula.append(zs[i])
+        print(len(formula))
+        for i in range(len(icl)):
+            # formula = icf[i].strip("\"")
+            entry += "prm %s = %s + %s;\n" % (icl[i], formula[i], dc_labels[i])
+
+        entry += "\n"
+        # get list of elements involved - this is used for beq function
+        atoms = self.atom_site_type_symbol
+        elements = set(atoms)
+        elements = list(elements)
+        elements = [x.strip("+-123456789") for x in elements]
+        beq_vars = []
+        for i in elements:
+            bv = i + "_beq"
+            beq_vars.append(bv)
+        for i in beq_vars:
+            entry += "prm %s 0.01 min 0 max 1 val_on_continue = Rand(0,0.1); \n" % i
+        entry += "prm rv 0.01 min 0 val_on_continue = Rand(0,0.1); \n"
+        entry += "prm r2v 0.01 min 0 val_on_continue = Rand(0,0.1); \n"
+        entry += "prm phase_scale 1 \n"
+        sites = self.atom_site_label
+        occs = self.atom_site_occupancy
+        for i in range(len(sites)):
+            entry += "site %s " % sites[i]
+            entry += " x = %s; " % icl[3 * i]
+            entry += " y = %s; " % icl[3 * i + 1]
+            entry += " z = %s; " % icl[3 * i + 2]
+            entry += " occ %s %s " % (atoms[i].strip("+-123456789"), occs[i])
+            for j in range(len(elements)):
+                if atoms[i].strip("+-123456789") == elements[j]:
+                    bn = "beq_" + str(i)
+                    entry += "beq_r_r2(%s,=%s;,d1,=rv;,d2,=r2v;) \n" % (bn, beq_vars[j])
+        entry += "scale = phase_scale; \n"
+        entry += "'}}} \n"
+        return entry
+
+    def output_single(self, sample):
+        entry = "'{{{ ===Output Macros=== \n"
+        entry += f"macro ycalc_out_(o,u,v) \n {{ \n mode##o##_{self.sample}_singlemode_##u##_##v##_ycalc.txt \n }} \n \n"
+        entry += "Out_X_Ycalc(ycalc_out_(MODE,IRREP,VAR)) \n \n"
+        entry += f"macro yobs_out_(o,u,v) \n {{ \n mode##o##_{self.sample}_singlemode_##u##_##v##_yobs.txt \n }} \n \n"
+        entry += "Out_X_Yobs(yobs_out_(MODE,IRREP,VAR)) \n \n"
+        entry += "macro file_out_(o,m,n) \n { \n mode##o##_##m##_%s_singlemode_##n##_out.txt \n } \n" % sample
+        entry += "out_prm_vals_on_convergence file_out_(MODE,IRREP,VAR) out_prm_vals_dependents_filter \"lprm_*\" \n"
+        entry += "'}}}"
+
+        return entry
+
+
+    def get_indices(self,irrep):
+
+
+      indices = []
+      iso_label = self.iso_displacivemode_label
+      for i in range(len(iso_label)):
+        m = re.search("\](.+?)\(",iso_label[i])
+        if m:
+            label = m.group(1)
+            if irrep == label:
+                indices.append(i)
+      return indices
+
+    def unique_modes(self, irrep):
+        """returns unique mode numbers corresponding to variable names in topas"""
+        #irreps = self.irrep_list()
+        indices = self.get_indices(irrep)
+        iso_label = self.iso_displacivemode_label
+        uniques = []
+        while indices:
+            uniques.append(indices[0]+1)
+
+            m = re.search("[a-zA-Z0-9_]+:[a-z]:(dsp|occ)", iso_label[indices[0]])
+            type = m.group(0)
+
+            m = re.search("\][a-zA-Z0-9]+\([a-z]", iso_label[indices[0]])
+            char = m.group(0)
+            char = char.rstrip(char[-1])
+
+            toremove = [indices[0]]
+            for index in indices:
+
+                if (type in iso_label[index]) and (char in iso_label[index]):
+                    toremove.append(index)
+            indices = [x for x in indices if x not in toremove]
+
+        return uniques
+
+
+
+
+    def execute_single(self, temps, unique = True, verbose = False, skip_irreps = []):
+        self.temps = temps
+        print("Finding Topas executables...")
+        for root, dirs, files in os.walk("C:\\", topdown=False):
+            for name in files:
+                if name == "tc.exe":
+                    topaspath = os.path.join(root, name)
+                    dirs[:] = []
+                    break
+        if not hasattr(self, "filename"):
+            self.filename = input("Enter filename: ")
+            if self.filename.endswith(".inp") == False:
+                self.filename += ".inp"
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name for this run: ")
+
+        irreps = self.irrep_list()
+        #irreps.append("nomodes")
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+
+        inppath = os.path.join(self.wd, self.filename)
+
+        print("Creating Monitoring File...")
+        f = open("%s_monitor.txt" % self.sample, "w")
+        f.write("Temp   Mode   Irrep   Executed \n")
+
+        for temp in temps:
+            f.write(f'{temp} 0 nomodes False \n')
+            for irrep in irreps:
+                if unique:
+                    uniques = self.unique_modes(irrep)
+                    for i in uniques:
+                        f.write(f'{temp} {i} {irrep} False \n')
+                else:
+                    iso_label = self.iso_displacivemode_label
+                    for i in range(len(iso_label)):
+                        m = re.search("\](.+?)\(", iso_label[i])
+                        if m:
+                            label = m.group(1)
+                            if irrep == label:
+                                #i+1 here since its an index
+                                f.write(f'{temp} {i+1} {irrep} False \n')
+
+
+        f.close()
+        f = open("%s_monitor.txt" % self.sample, "r")
+        lines = f.readlines()
+        f.close()
+        if unique:
+            print("Executing only unique modes for each irrep...")
+        else:
+            print("Executing...")
+        totaltime = 0
+        for i in range(1, len(lines)):
+            args = lines[i].split()
+            temp = args[0]
+            mode = args[1]
+            irrep = args[2]
+            start = time.time()
+            print("Executing mode %s , irrep %s for temp %s" % (mode,irrep, temp))
+            if verbose == False:
+                os.system(
+                    topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} macro MODE {{{2}}} #define mode{2} \" > NUL ".format(
+                        irrep, temp, mode))
+            else:
+                os.system(
+                    topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} macro MODE {{{2}}} #define mode{2} \" > NUL ".format(
+                        irrep, temp, mode))
+            lines[i] = "{0} {2}  {1}  True \n".format(temp, irrep, mode)
+            with open("%s_monitor.txt" % self.sample, "w") as file:
+                file.writelines(lines)
+            end = time.time()
+            processtime = end - start
+            totaltime += processtime
+            averagetime = totaltime / float(i)
+            remainingtime = (averagetime * (len(lines) - i - 1)) / 3600
+            print("Completed mode {4} (irrep {0}) for temp {1}. Process took {2}s ({3} minutes)".format(irrep, temp, processtime,
+                                                                                             processtime / 60, mode))
+            print("Estimated {0} hours to completion.".format(remainingtime))
+
+
+    def write_inp_single(self, sample, filenameformat, isneutron, qmax, dq, startx, finishx, lattice, path=os.getcwd(), cycles=30,
+                  isrebin=False, bin="0.02", lor=0, alpha=0, filename="batch_modes_single.inp", refine_angles=False):
+        print("Creating input file...")
+        self.filename = filename
+        self.sample = sample
+
+        entry = self.instrument_pars(cycles, path, filenameformat, isneutron, qmax, lor, dq, alpha,
+                                     startx, finishx, isrebin, rebindx=bin)
+        entry += self.phase(bin, lattice, refine_angles)
+        entry += self.modes_single()
+
+        entry += self.output_single(sample)
+        f = open(filename, "w")
+        f.write(entry)
+        f.close()
+        self.meta = f"Run {sample} was executed with a fitting range of {startx}-{finishx} angstrom, with {cycles} cycles per irrep. Instrumental values of qmax = {qmax}, dq = {dq}, lor = {lor} and alpha = {alpha}."
+        print("...%s written" % filename)
+
+
+    def create_hdf5_single(self,temps, unique = True, skip_irreps = []):
+        #does not store norms, mode amplitudes
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name to create hdf file for: ")
+
+        if not hasattr(self, "meta"):
+            self.meta = input("Enter some information to store to remind you of parameters used in this sapa run: ")
+
+        hdf = h5py.File(f"{self.sample}_singlemode.hdf5","w")
+        hdf.attrs["metadata"] = self.meta
+        tempsf = [float(x) for x in temps]
+        temp_arr = np.asarray(tempsf)
+        hdf["temps"] = temp_arr
+        irreps = self.irrep_list()
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+
+        hdf.attrs["irreps"] = irreps
+        df_calc = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temps[0]}_ycalc.txt", sep="\s+", index_col=None,
+                              names=["x", "ycalc"])
+
+        hdf.create_dataset("r_vals", data = np.asarray(df_calc["x"]))
+
+        grp = hdf.create_group("nomodes")
+        grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
+        grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
+        for i in range(len(temps)):
+
+            temp = temps[i]
+            df_c = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                               names=["x", "ycalc"], header=None)
+            df_o = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_yobs.txt", sep="\s+", index_col=None,
+                               names=["x", "yobs"], header=None)
+            dset = grp["ycalc"]
+            dset[i, :] = np.asarray(df_c["ycalc"])
+            dset = grp["yobs"]
+            dset[i, :] = np.asarray(df_o["yobs"])
+
+
+        for irrep in irreps:
+            if unique:
+                modes = self.unique_modes(irrep)
+            else:
+                modes = self.get_indices(irrep)
+                modes = [x+1 for x in modes]
+            for mode in modes:
+                grp = hdf.create_group(f"{irrep}/mode{mode}")
+                dfn = pd.read_csv(f"mode{mode}_{irrep}_{self.sample}_singlemode_{temps[0]}_out.txt",sep="\s+",index_col=None)
+                dfn = dfn.drop([0])
+                num_cycles = len(dfn["Rwp"])
+                dfn = dfn.drop(["Cycle", "Iter"], axis=1)
+                prms = dfn.columns
+                for prm in prms:
+                    grp.create_dataset(prm, (len(temps), num_cycles))
+                    hdf[f"{irrep}/mode{mode}/{prm}"].dims[0].label = "Temps"
+                grp.create_dataset("delrwp", (len(temps), num_cycles))
+                grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
+                grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
+
+
+
+                for i in range(len(temps)):
+                    temp = temps[i]
+
+
+                    fn = f"mode{mode}_{irrep}_{self.sample}_singlemode_{temp}_out.txt"
+                    df = pd.read_csv(fn,sep="\s+",index_col=None)
+                    df = df.drop([0])
+                    df = df.sort_values("Rwp")
+                    df.index = range(len(df.index))
+                    df = df.drop(["Cycle", "Iter"], axis = 1)
+                    names = df.columns
+                    for name in names:
+                        data = np.asarray(df[name])
+                        #print(name, temp,data.shape)
+                        dset = grp[name]
+                        dset[i,0:len(data)] = data
+
+                    nmdf = pd.read_csv(f"mode0_nomodes_{self.sample}_singlemode_{temp}_out.txt",sep="\s+",index_col=None)
+                    nmdf = nmdf.drop([0])
+                    nmdf = nmdf.sort_values("Rwp")
+                    nmdf.index = range(len(nmdf.index))
+                    nm_rwp = nmdf.at[0, "Rwp"]
+
+                    rwp = np.asarray(df["Rwp"])
+                    delrwp = rwp - nm_rwp
+                    dset = grp["delrwp"]
+                    dset[i,0:len(delrwp)] = delrwp
+
+
+                for i in range(len(temps)):
+                    temp = temps[i]
+                    
+                
+                    df_c = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                                          names=["x", "ycalc"], header=None)
+                    df_o = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_yobs.txt", sep="\s+", index_col=None,
+                                          names=["x", "yobs"], header=None)
+                    dset = grp["ycalc"]
+                    dset[i,:] = np.asarray(df_c["ycalc"])
+                    dset = grp["yobs"]
+                    dset[i,:] = np.asarray(df_o["yobs"])
+
+        self.temps = temps
+        hdf.close()
+
+    def cleanup_single(self, unique = True, create_zip=True, skip_irreps=[]):
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name to clean up: ")
+
+        if not hasattr(self, "temps"):
+            self.temps = input(f"Enter comma-separated temps for sample {self.sample}: ")
+            self.temps = self.temps.split(",")
+
+        irreps = self.irrep_list()
+        irreps.append("nomodes")
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+
+
+
+
+
+
+
+
+
+
+
+
+        if create_zip:
+            print("Creating zip file...")
+            zipObj = ZipFile(f"{self.sample}.zip", "w")
+
+            for irrep in irreps:
+                if irrep == "nomodes":
+                    modes = [0]
+                if unique and irrep != "nomodes":
+                    modes = self.unique_modes(irrep)
+
+                elif not unique and irrep != "nomodes":
+                    modes = self.get_indices(irrep)
+                    modes = [x + 1 for x in modes]
+
+                for mode in modes:
+                    for temp in self.temps:
+                        zipObj.write(f"mode{mode}_{irrep}_{self.sample}_singlemode_{temp}_out.txt")
+                        zipObj.write(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_ycalc.txt")
+                        zipObj.write(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_yobs.txt")
+            zipObj.close()
+            print("...Zip file written.")
+
+        print("Deleting .txt files...")
+        for irrep in irreps:
+
+            if irrep == "nomodes":
+                modes = [0]
+            if unique and irrep != "nomodes":
+                modes = self.unique_modes(irrep)
+
+            elif not unique and irrep != "nomodes":
+                modes = self.get_indices(irrep)
+                modes = [x + 1 for x in modes]
+            for mode in modes:
+                for temp in self.temps:
+                    os.remove(f"mode{mode}_{irrep}_{self.sample}_singlemode_{temp}_out.txt")
+                    os.remove(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_ycalc.txt")
+                    os.remove(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_yobs.txt")
+        print("...Clean up complete.")
+
+    def execute_old(self, temps, verbose=False, skip_irreps = []):
+        self.temps = temps
+        print("Finding Topas executables...")
+        for root, dirs, files in os.walk("C:\\", topdown=False):
+            for name in files:
+                if name == "tc.exe":
+                    topaspath = os.path.join(root, name)
+                    dirs[:] = []
+                    break
+        if not hasattr(self, "filename"):
+            self.filename = input("Enter filename: ")
+            if self.filename.endswith(".inp") == False:
+                self.filename += ".inp"
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name for this run: ")
+
+        irreps = self.irrep_list()
+        irreps.append("nomodes")
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+
+        inppath = os.path.join(self.wd, self.filename)
+
+        print("Creating Monitoring File...")
+        f = open("%s_monitor.txt" % self.sample, "w")
+        f.write("Temp   Irrep   Executed \n")
+        for temp in temps:
+            for irrep in irreps:
+                f.write("{0} {1}  False \n".format(temp, irrep))
+        f.close()
+        f = open("%s_monitor.txt" % self.sample, "r")
+        lines = f.readlines()
+        f.close()
+        print("Executing...")
+        totaltime = 0
+        for i in range(1, len(lines)):
+            args = lines[i].split()
+            temp = args[0]
+            irrep = args[1]
+            start = time.time()
+            print("Executing irrep %s for temp %s" % (irrep, temp))
+            if verbose == False:
+                os.system(
+                    topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} #define {0} \" > NUL ".format(
+                        irrep, temp))
+            else:
+                os.system(
+                    topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} #define {0} \" ".format(irrep,
+                                                                                                                 temp))
+            lines[i] = "{0}  {1}  True \n".format(temp, irrep)
+            with open("%s_monitor.txt" % self.sample, "w") as file:
+                file.writelines(lines)
+            end = time.time()
+            processtime = end - start
+            totaltime += processtime
+            averagetime = totaltime / float(i)
+            remainingtime = (averagetime * (len(lines) - i - 1)) / 3600
+            print("Completed irrep {0} for temp {1}. Process took {2}s ({3} minutes)".format(irrep, temp, processtime,
+                                                                                             processtime / 60))
+            print("Estimated {0} hours to completion.".format(remainingtime))
+
+
+
+
+
+
+
+
+
+
