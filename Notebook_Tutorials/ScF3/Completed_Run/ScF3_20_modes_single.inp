@@ -1,0 +1,870 @@
+'{{{ ===R-factors and control information===r_wp 0.0 r_exp 0.0 r_p 0.0 r_wp_dash 0.0 r_exp_dash 0.0 weighted_Durbin_Watson 0.0 gof 0.0 
+iters 10000000 
+chi2_convergence_criteria 0.001 
+continue_after_convergence 
+prm dummy  0.00000` val_on_continue = If(Cycle == 10, Get(iters) = 0, 0); 
+'}}}
+'{{{ ===File Input and Instrumental Parameters=== ' File input macro example. The ##n## is replaced when called. 
+macro file_in_(n) 
+{
+ C:\workingdirs\SAPA_XPDF_Workshop23\ScF3\ScF3_##n##K_dofr.xye 
+} 
+xdd file_in_(VAR) 
+   weighting = 1; 
+pdf_data 
+start_X 1.0 
+finish_X 20.0 
+   dQ_damping(!dQ,0.08) 
+   convolute_Qmax_Sinc(!Qmax,21.0) 
+'}}}'{{{=== PHASE INFORMATION === 
+      str 
+         a lprm_a 8.02490 
+         b lprm_b = lprm_a; 
+         c lprm_c = lprm_a; 
+         al !lprm_al 90.00000 
+         be !lprm_be 90.00000 
+         ga !lprm_ga 90.00000 
+         volume 516.79570 
+         space_group 1 
+         pdf_zero -0.01 
+'}}}
+ 
+ 
+ 
+'{{{====== MODE DEFINITIONS ===== 
+#ifndef mode1 
+prm !a1 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifdef mode1 
+prm a1 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifndef mode2 
+prm !a2 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifdef mode2 
+prm a2 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifndef mode3 
+prm !a3 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifdef mode3 
+prm a3 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifndef mode4 
+prm !a4 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5+(a,b,c)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifdef mode4 
+prm a4 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5+(a,b,c)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifndef mode5 
+prm !a5 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5+(a,b,c)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifdef mode5 
+prm a5 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5+(a,b,c)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifndef mode6 
+prm !a6 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5+(a,b,c)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifdef mode6 
+prm a6 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5+(a,b,c)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifndef mode7 
+prm !a7 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifdef mode7 
+prm a7 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifndef mode8 
+prm !a8 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifdef mode8 
+prm a8 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifndef mode9 
+prm !a9 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifdef mode9 
+prm a9 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifndef mode10 
+prm !a10 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifdef mode10 
+prm a10 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifndef mode11 
+prm !a11 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifdef mode11 
+prm a11 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifndef mode12 
+prm !a12 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifdef mode12 
+prm a12 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifndef mode13 
+prm !a13 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(d) 
+#endif 
+#ifdef mode13 
+prm a13 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(d) 
+#endif 
+#ifndef mode14 
+prm !a14 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(e) 
+#endif 
+#ifdef mode14 
+prm a14 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(e) 
+#endif 
+#ifndef mode15 
+prm !a15 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(f) 
+#endif 
+#ifdef mode15 
+prm a15 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[Sc1:b:dsp]T1u(f) 
+#endif 
+#ifndef mode16 
+prm !a16 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifdef mode16 
+prm a16 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifndef mode17 
+prm !a17 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifdef mode17 
+prm a17 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifndef mode18 
+prm !a18 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifdef mode18 
+prm a18 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifndef mode19 
+prm !a19 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifdef mode19 
+prm a19 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(a) 
+#endif 
+#ifndef mode20 
+prm !a20 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifdef mode20 
+prm a20 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(b) 
+#endif 
+#ifndef mode21 
+prm !a21 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifdef mode21 
+prm a21 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(c) 
+#endif 
+#ifndef mode22 
+prm !a22 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(d) 
+#endif 
+#ifdef mode22 
+prm a22 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(d) 
+#endif 
+#ifndef mode23 
+prm !a23 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(e) 
+#endif 
+#ifdef mode23 
+prm a23 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(e) 
+#endif 
+#ifndef mode24 
+prm !a24 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(f) 
+#endif 
+#ifdef mode24 
+prm a24 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[Sc1:b:dsp]T1u(f) 
+#endif 
+#ifndef mode25 
+prm !a25 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifdef mode25 
+prm a25 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifndef mode26 
+prm !a26 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifdef mode26 
+prm a26 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifndef mode27 
+prm !a27 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifdef mode27 
+prm a27 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifndef mode28 
+prm !a28 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode28 
+prm a28 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode29 
+prm !a29 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode29 
+prm a29 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode30 
+prm !a30 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode30 
+prm a30 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM4-(a,b,c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode31 
+prm !a31 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM5-(a,b,c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode31 
+prm a31 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM5-(a,b,c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode32 
+prm !a32 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM5-(a,b,c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode32 
+prm a32 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM5-(a,b,c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode33 
+prm !a33 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM5-(a,b,c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode33 
+prm a33 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,0,0]GM5-(a,b,c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode34 
+prm !a34 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R2-(a)[F1:c:dsp]A2u(a) 
+#endif 
+#ifdef mode34 
+prm a34 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R2-(a)[F1:c:dsp]A2u(a) 
+#endif 
+#ifndef mode35 
+prm !a35 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R3-(a,b)[F1:c:dsp]A2u(a) 
+#endif 
+#ifdef mode35 
+prm a35 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R3-(a,b)[F1:c:dsp]A2u(a) 
+#endif 
+#ifndef mode36 
+prm !a36 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R3-(a,b)[F1:c:dsp]A2u(b) 
+#endif 
+#ifdef mode36 
+prm a36 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R3-(a,b)[F1:c:dsp]A2u(b) 
+#endif 
+#ifndef mode37 
+prm !a37 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R4-(a,b,c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode37 
+prm a37 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R4-(a,b,c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode38 
+prm !a38 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R4-(a,b,c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode38 
+prm a38 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R4-(a,b,c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode39 
+prm !a39 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R4-(a,b,c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode39 
+prm a39 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R4-(a,b,c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode40 
+prm !a40 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5-(a,b,c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode40 
+prm a40 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5-(a,b,c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode41 
+prm !a41 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5-(a,b,c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode41 
+prm a41 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5-(a,b,c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode42 
+prm !a42 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5-(a,b,c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode42 
+prm a42 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,1/2]R5-(a,b,c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode43 
+prm !a43 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode43 
+prm a43 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode44 
+prm !a44 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode44 
+prm a44 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode45 
+prm !a45 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode45 
+prm a45 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X1+(a;b;c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode46 
+prm !a46 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X2+(a;b;c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode46 
+prm a46 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X2+(a;b;c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode47 
+prm !a47 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X2+(a;b;c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode47 
+prm a47 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X2+(a;b;c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode48 
+prm !a48 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X2+(a;b;c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode48 
+prm a48 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X2+(a;b;c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode49 
+prm !a49 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(a) 
+#endif 
+#ifdef mode49 
+prm a49 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(a) 
+#endif 
+#ifndef mode50 
+prm !a50 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(b) 
+#endif 
+#ifdef mode50 
+prm a50 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(b) 
+#endif 
+#ifndef mode51 
+prm !a51 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(c) 
+#endif 
+#ifdef mode51 
+prm a51 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(c) 
+#endif 
+#ifndef mode52 
+prm !a52 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(d) 
+#endif 
+#ifdef mode52 
+prm a52 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(d) 
+#endif 
+#ifndef mode53 
+prm !a53 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(e) 
+#endif 
+#ifdef mode53 
+prm a53 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(e) 
+#endif 
+#ifndef mode54 
+prm !a54 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(f) 
+#endif 
+#ifdef mode54 
+prm a54 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]A2u(f) 
+#endif 
+#ifndef mode55 
+prm !a55 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode55 
+prm a55 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode56 
+prm !a56 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode56 
+prm a56 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode57 
+prm !a57 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode57 
+prm a57 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode58 
+prm !a58 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(d) 
+#endif 
+#ifdef mode58 
+prm a58 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(d) 
+#endif 
+#ifndef mode59 
+prm !a59 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(e) 
+#endif 
+#ifdef mode59 
+prm a59 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(e) 
+#endif 
+#ifndef mode60 
+prm !a60 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(f) 
+#endif 
+#ifdef mode60 
+prm a60 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5+(a,b;c,d;e,f)[F1:c:dsp]Eu(f) 
+#endif 
+#ifndef mode61 
+prm !a61 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X3-(a;b;c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifdef mode61 
+prm a61 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X3-(a;b;c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifndef mode62 
+prm !a62 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X3-(a;b;c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifdef mode62 
+prm a62 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X3-(a;b;c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifndef mode63 
+prm !a63 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X3-(a;b;c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifdef mode63 
+prm a63 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X3-(a;b;c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifndef mode64 
+prm !a64 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode64 
+prm a64 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode65 
+prm !a65 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode65 
+prm a65 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode66 
+prm !a66 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode66 
+prm a66 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode67 
+prm !a67 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(d) 
+#endif 
+#ifdef mode67 
+prm a67 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(d) 
+#endif 
+#ifndef mode68 
+prm !a68 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(e) 
+#endif 
+#ifdef mode68 
+prm a68 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(e) 
+#endif 
+#ifndef mode69 
+prm !a69 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(f) 
+#endif 
+#ifdef mode69 
+prm a69 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[0,1/2,0]X5-(a,b;c,d;e,f)[F1:c:dsp]Eu(f) 
+#endif 
+#ifndef mode70 
+prm !a70 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M1+(a;b;c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode70 
+prm a70 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M1+(a;b;c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode71 
+prm !a71 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M1+(a;b;c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode71 
+prm a71 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M1+(a;b;c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode72 
+prm !a72 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M1+(a;b;c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode72 
+prm a72 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M1+(a;b;c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode73 
+prm !a73 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2+(a;b;c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode73 
+prm a73 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2+(a;b;c)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode74 
+prm !a74 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2+(a;b;c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode74 
+prm a74 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2+(a;b;c)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode75 
+prm !a75 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2+(a;b;c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode75 
+prm a75 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2+(a;b;c)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode76 
+prm !a76 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M3+(a;b;c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifdef mode76 
+prm a76 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M3+(a;b;c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifndef mode77 
+prm !a77 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M3+(a;b;c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifdef mode77 
+prm a77 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M3+(a;b;c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifndef mode78 
+prm !a78 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M3+(a;b;c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifdef mode78 
+prm a78 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M3+(a;b;c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifndef mode79 
+prm !a79 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M4+(a;b;c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifdef mode79 
+prm a79 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M4+(a;b;c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifndef mode80 
+prm !a80 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M4+(a;b;c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifdef mode80 
+prm a80 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M4+(a;b;c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifndef mode81 
+prm !a81 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M4+(a;b;c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifdef mode81 
+prm a81 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M4+(a;b;c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifndef mode82 
+prm !a82 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode82 
+prm a82 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode83 
+prm !a83 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode83 
+prm a83 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode84 
+prm !a84 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode84 
+prm a84 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode85 
+prm !a85 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(d) 
+#endif 
+#ifdef mode85 
+prm a85 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(d) 
+#endif 
+#ifndef mode86 
+prm !a86 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(e) 
+#endif 
+#ifdef mode86 
+prm a86 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(e) 
+#endif 
+#ifndef mode87 
+prm !a87 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(f) 
+#endif 
+#ifdef mode87 
+prm a87 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5+(a,b;c,d;e,f)[F1:c:dsp]Eu(f) 
+#endif 
+#ifndef mode88 
+prm !a88 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifdef mode88 
+prm a88 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[F1:c:dsp]A2u(a) 
+#endif 
+#ifndef mode89 
+prm !a89 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifdef mode89 
+prm a89 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[F1:c:dsp]A2u(b) 
+#endif 
+#ifndef mode90 
+prm !a90 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifdef mode90 
+prm a90 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M2-(a;b;c)[F1:c:dsp]A2u(c) 
+#endif 
+#ifndef mode91 
+prm !a91 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(a) 
+#endif 
+#ifdef mode91 
+prm a91 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(a) 
+#endif 
+#ifndef mode92 
+prm !a92 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(b) 
+#endif 
+#ifdef mode92 
+prm a92 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(b) 
+#endif 
+#ifndef mode93 
+prm !a93 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(c) 
+#endif 
+#ifdef mode93 
+prm a93 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(c) 
+#endif 
+#ifndef mode94 
+prm !a94 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(d) 
+#endif 
+#ifdef mode94 
+prm a94 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(d) 
+#endif 
+#ifndef mode95 
+prm !a95 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(e) 
+#endif 
+#ifdef mode95 
+prm a95 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(e) 
+#endif 
+#ifndef mode96 
+prm !a96 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(f) 
+#endif 
+#ifdef mode96 
+prm a96 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); ' Pm-3m[1/2,1/2,0]M5-(a,b;c,d;e,f)[F1:c:dsp]Eu(f) 
+#endif 
+'}}}
+ 
+ 
+ 
+'{{{===== MODE TO DELTAS TRANSFORMATION ===== 
+prm Sc1_1_dx = + 1.00000*a3  + 1.00000*a4  + 1.00000*a9  -1.00000*a11  + 1.00000*a12  + 1.00000*a16  + 1.00000*a22  + 1.00000*a23 ;: 0.0 
+prm Sc1_1_dy = + 1.00000*a2  + 1.00000*a6  + 1.00000*a7  -1.00000*a13  + 1.00000*a14  + 1.00000*a17  + 1.00000*a19  + 1.00000*a24 ;: 0.0 
+prm Sc1_1_dz = -1.00000*a1  -1.00000*a5  -1.00000*a8  -1.00000*a10  + 1.00000*a15  -1.00000*a18  -1.00000*a20  -1.00000*a21 ;: 0.0
+prm Sc1_2_dx = + 1.00000*a3  -1.00000*a4  + 1.00000*a9  -1.00000*a11  -1.00000*a12  -1.00000*a16  -1.00000*a22  + 1.00000*a23 ;: 0.0 
+prm Sc1_2_dy = + 1.00000*a2  -1.00000*a6  + 1.00000*a7  + 1.00000*a13  + 1.00000*a14  -1.00000*a17  -1.00000*a19  + 1.00000*a24 ;: 0.0 
+prm Sc1_2_dz = -1.00000*a1  + 1.00000*a5  + 1.00000*a8  -1.00000*a10  + 1.00000*a15  -1.00000*a18  + 1.00000*a20  + 1.00000*a21 ;: 0.0 
+prm Sc1_3_dx = + 1.00000*a3  -1.00000*a4  + 1.00000*a9  + 1.00000*a11  + 1.00000*a12  -1.00000*a16  + 1.00000*a22  -1.00000*a23 ;: 0.0
+prm Sc1_3_dy = + 1.00000*a2  -1.00000*a6  -1.00000*a7  -1.00000*a13  + 1.00000*a14  + 1.00000*a17  -1.00000*a19  -1.00000*a24 ;: 0.0
+prm Sc1_3_dz = -1.00000*a1  + 1.00000*a5  -1.00000*a8  + 1.00000*a10  + 1.00000*a15  + 1.00000*a18  + 1.00000*a20  -1.00000*a21 ;: 0.0
+prm Sc1_4_dx = + 1.00000*a3  + 1.00000*a4  + 1.00000*a9  + 1.00000*a11  -1.00000*a12  + 1.00000*a16  -1.00000*a22  -1.00000*a23 ;: 0.0
+prm Sc1_4_dy = + 1.00000*a2  + 1.00000*a6  -1.00000*a7  + 1.00000*a13  + 1.00000*a14  -1.00000*a17  + 1.00000*a19  -1.00000*a24 ;: 0.0
+prm Sc1_4_dz = -1.00000*a1  -1.00000*a5  + 1.00000*a8  + 1.00000*a10  + 1.00000*a15  + 1.00000*a18  -1.00000*a20  + 1.00000*a21 ;: 0.0 
+prm Sc1_5_dx = + 1.00000*a3  -1.00000*a4  -1.00000*a9  -1.00000*a11  + 1.00000*a12  + 1.00000*a16  -1.00000*a22  -1.00000*a23 ;: 0.0
+prm Sc1_5_dy = + 1.00000*a2  -1.00000*a6  + 1.00000*a7  -1.00000*a13  -1.00000*a14  -1.00000*a17  + 1.00000*a19  -1.00000*a24 ;: 0.0
+prm Sc1_5_dz = -1.00000*a1  + 1.00000*a5  -1.00000*a8  -1.00000*a10  -1.00000*a15  + 1.00000*a18  -1.00000*a20  + 1.00000*a21 ;: 0.0 
+prm Sc1_6_dx = + 1.00000*a3  + 1.00000*a4  -1.00000*a9  -1.00000*a11  -1.00000*a12  -1.00000*a16  + 1.00000*a22  -1.00000*a23 ;: 0.0
+prm Sc1_6_dy = + 1.00000*a2  + 1.00000*a6  + 1.00000*a7  + 1.00000*a13  -1.00000*a14  + 1.00000*a17  -1.00000*a19  -1.00000*a24 ;: 0.0
+prm Sc1_6_dz = -1.00000*a1  -1.00000*a5  + 1.00000*a8  -1.00000*a10  -1.00000*a15  + 1.00000*a18  + 1.00000*a20  -1.00000*a21 ;: 0.0
+prm Sc1_7_dx = + 1.00000*a3  + 1.00000*a4  -1.00000*a9  + 1.00000*a11  + 1.00000*a12  -1.00000*a16  -1.00000*a22  + 1.00000*a23 ;: 0.0 
+prm Sc1_7_dy = + 1.00000*a2  + 1.00000*a6  -1.00000*a7  -1.00000*a13  -1.00000*a14  -1.00000*a17  -1.00000*a19  + 1.00000*a24 ;: 0.0 
+prm Sc1_7_dz = -1.00000*a1  -1.00000*a5  -1.00000*a8  + 1.00000*a10  -1.00000*a15  -1.00000*a18  + 1.00000*a20  + 1.00000*a21 ;: 0.0 
+prm Sc1_8_dx = + 1.00000*a3  -1.00000*a4  -1.00000*a9  + 1.00000*a11  -1.00000*a12  + 1.00000*a16  + 1.00000*a22  + 1.00000*a23 ;: 0.0 
+prm Sc1_8_dy = + 1.00000*a2  -1.00000*a6  -1.00000*a7  + 1.00000*a13  -1.00000*a14  + 1.00000*a17  + 1.00000*a19  + 1.00000*a24 ;: 0.0 
+prm Sc1_8_dz = -1.00000*a1  + 1.00000*a5  + 1.00000*a8  + 1.00000*a10  -1.00000*a15  -1.00000*a18  -1.00000*a20  -1.00000*a21 ;: 0.0
+prm F1_1_dx = + 1.00000*a30  -1.00000*a31  + 1.00000*a39  -1.00000*a42  + 1.00000*a45  -1.00000*a48  -1.00000*a56  + 1.00000*a67  + 1.00000*a71  -1.00000*a74  -1.00000*a82  -1.00000*a95 ;: 0.0
+prm F1_1_dy = + 1.00000*a29  + 1.00000*a33  + 1.00000*a37  + 1.00000*a40  + 1.00000*a43  + 1.00000*a46  + 1.00000*a59  + 1.00000*a66  + 1.00000*a70  + 1.00000*a73  + 1.00000*a85  -1.00000*a96 ;: 0.0
+prm F1_1_dz = -1.00000*a25  -1.00000*a34  -0.50000*a35  -1.00000*a36  -1.00000*a49  + 1.00000*a54  -1.00000*a62  -1.00000*a76  + 1.00000*a77  -1.00000*a79  -1.00000*a80  -1.00000*a90 ;: 0.0
+prm F1_2_dx = + 1.00000*a30  -1.00000*a31  -1.00000*a39  + 1.00000*a42  + 1.00000*a45  -1.00000*a48  -1.00000*a56  -1.00000*a67  -1.00000*a71  + 1.00000*a74  + 1.00000*a82  -1.00000*a95 ;: 0.0
+prm F1_2_dy = + 1.00000*a29  + 1.00000*a33  -1.00000*a37  -1.00000*a40  + 1.00000*a43  + 1.00000*a46  + 1.00000*a59  -1.00000*a66  -1.00000*a70  -1.00000*a73  -1.00000*a85  -1.00000*a96 ;: 0.0
+prm F1_2_dz = -1.00000*a25  + 1.00000*a34  + 0.50000*a35  + 1.00000*a36  -1.00000*a49  + 1.00000*a54  + 1.00000*a62  + 1.00000*a76  -1.00000*a77  + 1.00000*a79  + 1.00000*a80  -1.00000*a90 ;: 0.0
+prm F1_3_dx = + 1.00000*a30  -1.00000*a31  -1.00000*a39  + 1.00000*a42  + 1.00000*a45  -1.00000*a48  + 1.00000*a56  + 1.00000*a67  + 1.00000*a71  -1.00000*a74  + 1.00000*a82  + 1.00000*a95 ;: 0.0 
+prm F1_3_dy = + 1.00000*a29  + 1.00000*a33  -1.00000*a37  -1.00000*a40  -1.00000*a43  -1.00000*a46  + 1.00000*a59  + 1.00000*a66  -1.00000*a70  -1.00000*a73  + 1.00000*a85  + 1.00000*a96 ;: 0.0 
+prm F1_3_dz = -1.00000*a25  + 1.00000*a34  + 0.50000*a35  + 1.00000*a36  + 1.00000*a49  + 1.00000*a54  -1.00000*a62  + 1.00000*a76  + 1.00000*a77  + 1.00000*a79  -1.00000*a80  + 1.00000*a90 ;: 0.0 
+prm F1_4_dx = + 1.00000*a30  -1.00000*a31  + 1.00000*a39  -1.00000*a42  + 1.00000*a45  -1.00000*a48  + 1.00000*a56  -1.00000*a67  -1.00000*a71  + 1.00000*a74  -1.00000*a82  + 1.00000*a95 ;: 0.0 
+prm F1_4_dy = + 1.00000*a29  + 1.00000*a33  + 1.00000*a37  + 1.00000*a40  -1.00000*a43  -1.00000*a46  + 1.00000*a59  -1.00000*a66  + 1.00000*a70  + 1.00000*a73  -1.00000*a85  + 1.00000*a96 ;: 0.0 
+prm F1_4_dz = -1.00000*a25  -1.00000*a34  -0.50000*a35  -1.00000*a36  + 1.00000*a49  + 1.00000*a54  + 1.00000*a62  -1.00000*a76  -1.00000*a77  -1.00000*a79  + 1.00000*a80  + 1.00000*a90 ;: 0.0 
+prm F1_5_dx = + 1.00000*a30  -1.00000*a31  -1.00000*a39  + 1.00000*a42  -1.00000*a45  + 1.00000*a48  -1.00000*a56  + 1.00000*a67  -1.00000*a71  + 1.00000*a74  -1.00000*a82  + 1.00000*a95 ;: 0.0 
+prm F1_5_dy = + 1.00000*a29  + 1.00000*a33  -1.00000*a37  -1.00000*a40  + 1.00000*a43  + 1.00000*a46  -1.00000*a59  + 1.00000*a66  + 1.00000*a70  + 1.00000*a73  -1.00000*a85  + 1.00000*a96 ;: 0.0 
+prm F1_5_dz = -1.00000*a25  + 1.00000*a34  + 0.50000*a35  + 1.00000*a36  -1.00000*a49  -1.00000*a54  -1.00000*a62  -1.00000*a76  -1.00000*a77  -1.00000*a79  + 1.00000*a80  + 1.00000*a90 ;: 0.0 
+prm F1_6_dx = + 1.00000*a30  -1.00000*a31  + 1.00000*a39  -1.00000*a42  -1.00000*a45  + 1.00000*a48  -1.00000*a56  -1.00000*a67  + 1.00000*a71  -1.00000*a74  + 1.00000*a82  + 1.00000*a95 ;: 0.0 
+prm F1_6_dy = + 1.00000*a29  + 1.00000*a33  + 1.00000*a37  + 1.00000*a40  + 1.00000*a43  + 1.00000*a46  -1.00000*a59  -1.00000*a66  -1.00000*a70  -1.00000*a73  + 1.00000*a85  + 1.00000*a96 ;: 0.0 
+prm F1_6_dz = -1.00000*a25  -1.00000*a34  -0.50000*a35  -1.00000*a36  -1.00000*a49  -1.00000*a54  + 1.00000*a62  + 1.00000*a76  + 1.00000*a77  + 1.00000*a79  -1.00000*a80  + 1.00000*a90 ;: 0.0 
+prm F1_7_dx = + 1.00000*a30  -1.00000*a31  + 1.00000*a39  -1.00000*a42  -1.00000*a45  + 1.00000*a48  + 1.00000*a56  + 1.00000*a67  -1.00000*a71  + 1.00000*a74  + 1.00000*a82  -1.00000*a95 ;: 0.0
+prm F1_7_dy = + 1.00000*a29  + 1.00000*a33  + 1.00000*a37  + 1.00000*a40  -1.00000*a43  -1.00000*a46  -1.00000*a59  + 1.00000*a66  -1.00000*a70  -1.00000*a73  -1.00000*a85  -1.00000*a96 ;: 0.0
+prm F1_7_dz = -1.00000*a25  -1.00000*a34  -0.50000*a35  -1.00000*a36  + 1.00000*a49  -1.00000*a54  -1.00000*a62  + 1.00000*a76  -1.00000*a77  + 1.00000*a79  + 1.00000*a80  -1.00000*a90 ;: 0.0
+prm F1_8_dx = + 1.00000*a30  -1.00000*a31  -1.00000*a39  + 1.00000*a42  -1.00000*a45  + 1.00000*a48  + 1.00000*a56  -1.00000*a67  + 1.00000*a71  -1.00000*a74  -1.00000*a82  -1.00000*a95 ;: 0.0
+prm F1_8_dy = + 1.00000*a29  + 1.00000*a33  -1.00000*a37  -1.00000*a40  -1.00000*a43  -1.00000*a46  -1.00000*a59  -1.00000*a66  + 1.00000*a70  + 1.00000*a73  + 1.00000*a85  -1.00000*a96 ;: 0.0
+prm F1_8_dz = -1.00000*a25  + 1.00000*a34  + 0.50000*a35  + 1.00000*a36  + 1.00000*a49  -1.00000*a54  + 1.00000*a62  -1.00000*a76  + 1.00000*a77  -1.00000*a79  -1.00000*a80  -1.00000*a90 ;: 0.0
+prm F1_9_dx = + 1.00000*a27  + 1.00000*a34  -1.00000*a35  -1.00000*a50  + 1.00000*a51  + 1.00000*a63  + 1.00000*a77  -1.00000*a78  + 1.00000*a80  + 1.00000*a81  + 1.00000*a88 ;: 0.0 
+prm F1_9_dy = + 1.00000*a29  -1.00000*a33  + 1.00000*a38  -1.00000*a41  + 1.00000*a43  -1.00000*a46  -1.00000*a58  + 1.00000*a69  + 1.00000*a72  -1.00000*a75  -1.00000*a84  -1.00000*a91 ;: 0.0
+prm F1_9_dz = -1.00000*a28  -1.00000*a32  -1.00000*a39  -1.00000*a42  -1.00000*a44  -1.00000*a47  -1.00000*a55  -1.00000*a68  -1.00000*a71  -1.00000*a74  -1.00000*a87  + 1.00000*a92 ;: 0.0 
+prm F1_10_dx = + 1.00000*a27  -1.00000*a34  + 1.00000*a35  -1.00000*a50  -1.00000*a51  + 1.00000*a63  -1.00000*a77  -1.00000*a78  -1.00000*a80  + 1.00000*a81  -1.00000*a88 ;: 0.0
+prm F1_10_dy = + 1.00000*a29  -1.00000*a33  -1.00000*a38  + 1.00000*a41  + 1.00000*a43  -1.00000*a46  + 1.00000*a58  + 1.00000*a69  + 1.00000*a72  -1.00000*a75  + 1.00000*a84  + 1.00000*a91 ;: 0.0 
+prm F1_10_dz = -1.00000*a28  -1.00000*a32  + 1.00000*a39  + 1.00000*a42  + 1.00000*a44  + 1.00000*a47  -1.00000*a55  -1.00000*a68  + 1.00000*a71  + 1.00000*a74  -1.00000*a87  -1.00000*a92 ;: 0.0
+prm F1_11_dx = + 1.00000*a27  -1.00000*a34  + 1.00000*a35  + 1.00000*a50  + 1.00000*a51  + 1.00000*a63  + 1.00000*a77  + 1.00000*a78  + 1.00000*a80  -1.00000*a81  -1.00000*a88 ;: 0.0
+prm F1_11_dy = + 1.00000*a29  -1.00000*a33  -1.00000*a38  + 1.00000*a41  -1.00000*a43  + 1.00000*a46  -1.00000*a58  + 1.00000*a69  -1.00000*a72  + 1.00000*a75  -1.00000*a84  + 1.00000*a91 ;: 0.0 
+prm F1_11_dz = -1.00000*a28  -1.00000*a32  + 1.00000*a39  + 1.00000*a42  -1.00000*a44  -1.00000*a47  + 1.00000*a55  -1.00000*a68  -1.00000*a71  -1.00000*a74  + 1.00000*a87  -1.00000*a92 ;: 0.0
+prm F1_12_dx = + 1.00000*a27  + 1.00000*a34  -1.00000*a35  + 1.00000*a50  -1.00000*a51  + 1.00000*a63  -1.00000*a77  + 1.00000*a78  -1.00000*a80  -1.00000*a81  + 1.00000*a88 ;: 0.0 
+prm F1_12_dy = + 1.00000*a29  -1.00000*a33  + 1.00000*a38  -1.00000*a41  -1.00000*a43  + 1.00000*a46  + 1.00000*a58  + 1.00000*a69  -1.00000*a72  + 1.00000*a75  + 1.00000*a84  -1.00000*a91 ;: 0.0
+prm F1_12_dz = -1.00000*a28  -1.00000*a32  -1.00000*a39  -1.00000*a42  + 1.00000*a44  + 1.00000*a47  + 1.00000*a55  -1.00000*a68  + 1.00000*a71  + 1.00000*a74  + 1.00000*a87  + 1.00000*a92 ;: 0.0 
+prm F1_13_dx = + 1.00000*a27  -1.00000*a34  + 1.00000*a35  -1.00000*a50  + 1.00000*a51  -1.00000*a63  -1.00000*a77  + 1.00000*a78  -1.00000*a80  -1.00000*a81  + 1.00000*a88 ;: 0.0 
+prm F1_13_dy = + 1.00000*a29  -1.00000*a33  -1.00000*a38  + 1.00000*a41  + 1.00000*a43  -1.00000*a46  -1.00000*a58  -1.00000*a69  -1.00000*a72  + 1.00000*a75  + 1.00000*a84  -1.00000*a91 ;: 0.0
+prm F1_13_dz = -1.00000*a28  -1.00000*a32  + 1.00000*a39  + 1.00000*a42  -1.00000*a44  -1.00000*a47  -1.00000*a55  + 1.00000*a68  + 1.00000*a71  + 1.00000*a74  + 1.00000*a87  + 1.00000*a92 ;: 0.0 
+prm F1_14_dx = + 1.00000*a27  + 1.00000*a34  -1.00000*a35  -1.00000*a50  -1.00000*a51  -1.00000*a63  + 1.00000*a77  + 1.00000*a78  + 1.00000*a80  -1.00000*a81  -1.00000*a88 ;: 0.0
+prm F1_14_dy = + 1.00000*a29  -1.00000*a33  + 1.00000*a38  -1.00000*a41  + 1.00000*a43  -1.00000*a46  + 1.00000*a58  -1.00000*a69  -1.00000*a72  + 1.00000*a75  -1.00000*a84  + 1.00000*a91 ;: 0.0 
+prm F1_14_dz = -1.00000*a28  -1.00000*a32  -1.00000*a39  -1.00000*a42  + 1.00000*a44  + 1.00000*a47  -1.00000*a55  + 1.00000*a68  -1.00000*a71  -1.00000*a74  + 1.00000*a87  -1.00000*a92 ;: 0.0
+prm F1_15_dx = + 1.00000*a27  + 1.00000*a34  -1.00000*a35  + 1.00000*a50  + 1.00000*a51  -1.00000*a63  -1.00000*a77  -1.00000*a78  -1.00000*a80  + 1.00000*a81  -1.00000*a88 ;: 0.0
+prm F1_15_dy = + 1.00000*a29  -1.00000*a33  + 1.00000*a38  -1.00000*a41  -1.00000*a43  + 1.00000*a46  -1.00000*a58  -1.00000*a69  + 1.00000*a72  -1.00000*a75  + 1.00000*a84  + 1.00000*a91 ;: 0.0 
+prm F1_15_dz = -1.00000*a28  -1.00000*a32  -1.00000*a39  -1.00000*a42  -1.00000*a44  -1.00000*a47  + 1.00000*a55  + 1.00000*a68  + 1.00000*a71  + 1.00000*a74  -1.00000*a87  -1.00000*a92 ;: 0.0
+prm F1_16_dx = + 1.00000*a27  -1.00000*a34  + 1.00000*a35  + 1.00000*a50  -1.00000*a51  -1.00000*a63  + 1.00000*a77  -1.00000*a78  + 1.00000*a80  + 1.00000*a81  + 1.00000*a88 ;: 0.0 
+prm F1_16_dy = + 1.00000*a29  -1.00000*a33  -1.00000*a38  + 1.00000*a41  -1.00000*a43  + 1.00000*a46  + 1.00000*a58  -1.00000*a69  + 1.00000*a72  -1.00000*a75  -1.00000*a84  -1.00000*a91 ;: 0.0
+prm F1_16_dz = -1.00000*a28  -1.00000*a32  + 1.00000*a39  + 1.00000*a42  + 1.00000*a44  + 1.00000*a47  + 1.00000*a55  + 1.00000*a68  -1.00000*a71  -1.00000*a74  -1.00000*a87  + 1.00000*a92 ;: 0.0 
+prm F1_17_dx = + 1.00000*a30  + 1.00000*a31  + 1.00000*a38  + 1.00000*a41  + 1.00000*a45  + 1.00000*a48  + 1.00000*a57  + 1.00000*a64  + 1.00000*a72  + 1.00000*a75  + 1.00000*a83  -1.00000*a94 ;: 0.0
+prm F1_17_dy = + 1.00000*a26  + 1.00000*a34  + 0.50000*a35  -1.00000*a36  -1.00000*a52  + 1.00000*a53  + 1.00000*a61  -1.00000*a76  + 1.00000*a78  + 1.00000*a79  + 1.00000*a81  + 1.00000*a89 ;: 0.0 
+prm F1_17_dz = -1.00000*a28  + 1.00000*a32  -1.00000*a37  + 1.00000*a40  -1.00000*a44  + 1.00000*a47  + 1.00000*a60  -1.00000*a65  -1.00000*a70  + 1.00000*a73  + 1.00000*a86  + 1.00000*a93 ;: 0.0 
+prm F1_18_dx = + 1.00000*a30  + 1.00000*a31  -1.00000*a38  -1.00000*a41  + 1.00000*a45  + 1.00000*a48  -1.00000*a57  + 1.00000*a64  + 1.00000*a72  + 1.00000*a75  -1.00000*a83  + 1.00000*a94 ;: 0.0 
+prm F1_18_dy = + 1.00000*a26  -1.00000*a34  -0.50000*a35  + 1.00000*a36  + 1.00000*a52  + 1.00000*a53  + 1.00000*a61  + 1.00000*a76  + 1.00000*a78  -1.00000*a79  + 1.00000*a81  -1.00000*a89 ;: 0.0
+prm F1_18_dz = -1.00000*a28  + 1.00000*a32  + 1.00000*a37  -1.00000*a40  + 1.00000*a44  -1.00000*a47  + 1.00000*a60  -1.00000*a65  + 1.00000*a70  -1.00000*a73  + 1.00000*a86  -1.00000*a93 ;: 0.0
+prm F1_19_dx = + 1.00000*a30  + 1.00000*a31  -1.00000*a38  -1.00000*a41  + 1.00000*a45  + 1.00000*a48  + 1.00000*a57  -1.00000*a64  -1.00000*a72  -1.00000*a75  -1.00000*a83  -1.00000*a94 ;: 0.0
+prm F1_19_dy = + 1.00000*a26  -1.00000*a34  -0.50000*a35  + 1.00000*a36  -1.00000*a52  + 1.00000*a53  -1.00000*a61  + 1.00000*a76  -1.00000*a78  -1.00000*a79  -1.00000*a81  + 1.00000*a89 ;: 0.0 
+prm F1_19_dz = -1.00000*a28  + 1.00000*a32  + 1.00000*a37  -1.00000*a40  -1.00000*a44  + 1.00000*a47  + 1.00000*a60  + 1.00000*a65  + 1.00000*a70  -1.00000*a73  -1.00000*a86  + 1.00000*a93 ;: 0.0 
+prm F1_20_dx = + 1.00000*a30  + 1.00000*a31  + 1.00000*a38  + 1.00000*a41  + 1.00000*a45  + 1.00000*a48  -1.00000*a57  -1.00000*a64  -1.00000*a72  -1.00000*a75  + 1.00000*a83  + 1.00000*a94 ;: 0.0 
+prm F1_20_dy = + 1.00000*a26  + 1.00000*a34  + 0.50000*a35  -1.00000*a36  + 1.00000*a52  + 1.00000*a53  -1.00000*a61  -1.00000*a76  -1.00000*a78  + 1.00000*a79  -1.00000*a81  -1.00000*a89 ;: 0.0
+prm F1_20_dz = -1.00000*a28  + 1.00000*a32  -1.00000*a37  + 1.00000*a40  + 1.00000*a44  -1.00000*a47  + 1.00000*a60  + 1.00000*a65  -1.00000*a70  + 1.00000*a73  -1.00000*a86  -1.00000*a93 ;: 0.0
+prm F1_21_dx = + 1.00000*a30  + 1.00000*a31  -1.00000*a38  -1.00000*a41  -1.00000*a45  -1.00000*a48  + 1.00000*a57  + 1.00000*a64  -1.00000*a72  -1.00000*a75  + 1.00000*a83  + 1.00000*a94 ;: 0.0 
+prm F1_21_dy = + 1.00000*a26  -1.00000*a34  -0.50000*a35  + 1.00000*a36  -1.00000*a52  -1.00000*a53  + 1.00000*a61  -1.00000*a76  -1.00000*a78  + 1.00000*a79  -1.00000*a81  -1.00000*a89 ;: 0.0
+prm F1_21_dz = -1.00000*a28  + 1.00000*a32  + 1.00000*a37  -1.00000*a40  -1.00000*a44  + 1.00000*a47  -1.00000*a60  -1.00000*a65  -1.00000*a70  + 1.00000*a73  -1.00000*a86  -1.00000*a93 ;: 0.0
+prm F1_22_dx = + 1.00000*a30  + 1.00000*a31  + 1.00000*a38  + 1.00000*a41  -1.00000*a45  -1.00000*a48  -1.00000*a57  + 1.00000*a64  -1.00000*a72  -1.00000*a75  -1.00000*a83  -1.00000*a94 ;: 0.0
+prm F1_22_dy = + 1.00000*a26  + 1.00000*a34  + 0.50000*a35  -1.00000*a36  + 1.00000*a52  -1.00000*a53  + 1.00000*a61  + 1.00000*a76  -1.00000*a78  -1.00000*a79  -1.00000*a81  + 1.00000*a89 ;: 0.0 
+prm F1_22_dz = -1.00000*a28  + 1.00000*a32  -1.00000*a37  + 1.00000*a40  + 1.00000*a44  -1.00000*a47  -1.00000*a60  -1.00000*a65  + 1.00000*a70  -1.00000*a73  -1.00000*a86  + 1.00000*a93 ;: 0.0 
+prm F1_23_dx = + 1.00000*a30  + 1.00000*a31  + 1.00000*a38  + 1.00000*a41  -1.00000*a45  -1.00000*a48  + 1.00000*a57  -1.00000*a64  + 1.00000*a72  + 1.00000*a75  -1.00000*a83  + 1.00000*a94 ;: 0.0 
+prm F1_23_dy = + 1.00000*a26  + 1.00000*a34  + 0.50000*a35  -1.00000*a36  -1.00000*a52  -1.00000*a53  -1.00000*a61  + 1.00000*a76  + 1.00000*a78  -1.00000*a79  + 1.00000*a81  -1.00000*a89 ;: 0.0
+prm F1_23_dz = -1.00000*a28  + 1.00000*a32  -1.00000*a37  + 1.00000*a40  -1.00000*a44  + 1.00000*a47  -1.00000*a60  + 1.00000*a65  + 1.00000*a70  -1.00000*a73  + 1.00000*a86  -1.00000*a93 ;: 0.0
+prm F1_24_dx = + 1.00000*a30  + 1.00000*a31  -1.00000*a38  -1.00000*a41  -1.00000*a45  -1.00000*a48  -1.00000*a57  -1.00000*a64  + 1.00000*a72  + 1.00000*a75  + 1.00000*a83  -1.00000*a94 ;: 0.0
+prm F1_24_dy = + 1.00000*a26  -1.00000*a34  -0.50000*a35  + 1.00000*a36  + 1.00000*a52  -1.00000*a53  -1.00000*a61  -1.00000*a76  + 1.00000*a78  + 1.00000*a79  + 1.00000*a81  + 1.00000*a89 ;: 0.0 
+prm F1_24_dz = -1.00000*a28  + 1.00000*a32  + 1.00000*a37  -1.00000*a40  + 1.00000*a44  -1.00000*a47  -1.00000*a60  + 1.00000*a65  -1.00000*a70  + 1.00000*a73  + 1.00000*a86  + 1.00000*a93 ;: 0.0 
+'}}}
+'{{{ ===Site Definitions===
+prm Sc1_1_x = 0.25000 + Sc1_1_dx;
+prm Sc1_1_y = 0.25000 + Sc1_1_dy;
+prm Sc1_1_z = 0.75000 + Sc1_1_dz;
+prm Sc1_2_x = 0.25000 + Sc1_2_dx;
+prm Sc1_2_y = 0.25000 + Sc1_2_dy;
+prm Sc1_2_z = 0.25000 + Sc1_2_dz;
+prm Sc1_3_x = 0.25000 + Sc1_3_dx;
+prm Sc1_3_y = 0.75000 + Sc1_3_dy;
+prm Sc1_3_z = 0.75000 + Sc1_3_dz;
+prm Sc1_4_x = 0.25000 + Sc1_4_dx;
+prm Sc1_4_y = 0.75000 + Sc1_4_dy;
+prm Sc1_4_z = 0.25000 + Sc1_4_dz;
+prm Sc1_5_x = 0.75000 + Sc1_5_dx;
+prm Sc1_5_y = 0.25000 + Sc1_5_dy;
+prm Sc1_5_z = 0.75000 + Sc1_5_dz;
+prm Sc1_6_x = 0.75000 + Sc1_6_dx;
+prm Sc1_6_y = 0.25000 + Sc1_6_dy;
+prm Sc1_6_z = 0.25000 + Sc1_6_dz;
+prm Sc1_7_x = 0.75000 + Sc1_7_dx;
+prm Sc1_7_y = 0.75000 + Sc1_7_dy;
+prm Sc1_7_z = 0.75000 + Sc1_7_dz;
+prm Sc1_8_x = 0.75000 + Sc1_8_dx;
+prm Sc1_8_y = 0.75000 + Sc1_8_dy;
+prm Sc1_8_z = 0.25000 + Sc1_8_dz;
+prm F1_1_x = 0.25000 + F1_1_dx;
+prm F1_1_y = 0.25000 + F1_1_dy;
+prm F1_1_z = 0.00000 + F1_1_dz;
+prm F1_2_x = 0.25000 + F1_2_dx;
+prm F1_2_y = 0.25000 + F1_2_dy;
+prm F1_2_z = 0.50000 + F1_2_dz;
+prm F1_3_x = 0.25000 + F1_3_dx;
+prm F1_3_y = 0.75000 + F1_3_dy;
+prm F1_3_z = 0.00000 + F1_3_dz;
+prm F1_4_x = 0.25000 + F1_4_dx;
+prm F1_4_y = 0.75000 + F1_4_dy;
+prm F1_4_z = 0.50000 + F1_4_dz;
+prm F1_5_x = 0.75000 + F1_5_dx;
+prm F1_5_y = 0.25000 + F1_5_dy;
+prm F1_5_z = 0.00000 + F1_5_dz;
+prm F1_6_x = 0.75000 + F1_6_dx;
+prm F1_6_y = 0.25000 + F1_6_dy;
+prm F1_6_z = 0.50000 + F1_6_dz;
+prm F1_7_x = 0.75000 + F1_7_dx;
+prm F1_7_y = 0.75000 + F1_7_dy;
+prm F1_7_z = 0.00000 + F1_7_dz;
+prm F1_8_x = 0.75000 + F1_8_dx;
+prm F1_8_y = 0.75000 + F1_8_dy;
+prm F1_8_z = 0.50000 + F1_8_dz;
+prm F1_9_x = 0.00000 + F1_9_dx;
+prm F1_9_y = 0.25000 + F1_9_dy;
+prm F1_9_z = 0.75000 + F1_9_dz;
+prm F1_10_x = 0.00000 + F1_10_dx;
+prm F1_10_y = 0.25000 + F1_10_dy;
+prm F1_10_z = 0.25000 + F1_10_dz;
+prm F1_11_x = 0.00000 + F1_11_dx;
+prm F1_11_y = 0.75000 + F1_11_dy;
+prm F1_11_z = 0.75000 + F1_11_dz;
+prm F1_12_x = 0.00000 + F1_12_dx;
+prm F1_12_y = 0.75000 + F1_12_dy;
+prm F1_12_z = 0.25000 + F1_12_dz;
+prm F1_13_x = 0.50000 + F1_13_dx;
+prm F1_13_y = 0.25000 + F1_13_dy;
+prm F1_13_z = 0.75000 + F1_13_dz;
+prm F1_14_x = 0.50000 + F1_14_dx;
+prm F1_14_y = 0.25000 + F1_14_dy;
+prm F1_14_z = 0.25000 + F1_14_dz;
+prm F1_15_x = 0.50000 + F1_15_dx;
+prm F1_15_y = 0.75000 + F1_15_dy;
+prm F1_15_z = 0.75000 + F1_15_dz;
+prm F1_16_x = 0.50000 + F1_16_dx;
+prm F1_16_y = 0.75000 + F1_16_dy;
+prm F1_16_z = 0.25000 + F1_16_dz;
+prm F1_17_x = 0.25000 + F1_17_dx;
+prm F1_17_y = 0.00000 + F1_17_dy;
+prm F1_17_z = 0.75000 + F1_17_dz;
+prm F1_18_x = 0.25000 + F1_18_dx;
+prm F1_18_y = 0.00000 + F1_18_dy;
+prm F1_18_z = 0.25000 + F1_18_dz;
+prm F1_19_x = 0.25000 + F1_19_dx;
+prm F1_19_y = 0.50000 + F1_19_dy;
+prm F1_19_z = 0.75000 + F1_19_dz;
+prm F1_20_x = 0.25000 + F1_20_dx;
+prm F1_20_y = 0.50000 + F1_20_dy;
+prm F1_20_z = 0.25000 + F1_20_dz;
+prm F1_21_x = 0.75000 + F1_21_dx;
+prm F1_21_y = 0.00000 + F1_21_dy;
+prm F1_21_z = 0.75000 + F1_21_dz;
+prm F1_22_x = 0.75000 + F1_22_dx;
+prm F1_22_y = 0.00000 + F1_22_dy;
+prm F1_22_z = 0.25000 + F1_22_dz;
+prm F1_23_x = 0.75000 + F1_23_dx;
+prm F1_23_y = 0.50000 + F1_23_dy;
+prm F1_23_z = 0.75000 + F1_23_dz;
+prm F1_24_x = 0.75000 + F1_24_dx;
+prm F1_24_y = 0.50000 + F1_24_dy;
+prm F1_24_z = 0.25000 + F1_24_dz;
+
+prm Sc_beq 0.01 min 0 max 1 val_on_continue = Rand(0,0.1); 
+prm F_beq 0.01 min 0 max 1 val_on_continue = Rand(0,0.1); 
+prm rv 0.01 min 0 val_on_continue = Rand(0,0.1); 
+prm r2v 0.01 min 0 val_on_continue = Rand(0,0.1); 
+prm phase_scale 1 
+site Sc1_1  x = Sc1_1_x;  y = Sc1_1_y;  z = Sc1_1_z;  occ Sc 1.00000 beq_r_r2(beq_0,=Sc_beq;,d1,=rv;,d2,=r2v;) 
+site Sc1_2  x = Sc1_2_x;  y = Sc1_2_y;  z = Sc1_2_z;  occ Sc 1.00000 beq_r_r2(beq_1,=Sc_beq;,d1,=rv;,d2,=r2v;) 
+site Sc1_3  x = Sc1_3_x;  y = Sc1_3_y;  z = Sc1_3_z;  occ Sc 1.00000 beq_r_r2(beq_2,=Sc_beq;,d1,=rv;,d2,=r2v;) 
+site Sc1_4  x = Sc1_4_x;  y = Sc1_4_y;  z = Sc1_4_z;  occ Sc 1.00000 beq_r_r2(beq_3,=Sc_beq;,d1,=rv;,d2,=r2v;) 
+site Sc1_5  x = Sc1_5_x;  y = Sc1_5_y;  z = Sc1_5_z;  occ Sc 1.00000 beq_r_r2(beq_4,=Sc_beq;,d1,=rv;,d2,=r2v;) 
+site Sc1_6  x = Sc1_6_x;  y = Sc1_6_y;  z = Sc1_6_z;  occ Sc 1.00000 beq_r_r2(beq_5,=Sc_beq;,d1,=rv;,d2,=r2v;) 
+site Sc1_7  x = Sc1_7_x;  y = Sc1_7_y;  z = Sc1_7_z;  occ Sc 1.00000 beq_r_r2(beq_6,=Sc_beq;,d1,=rv;,d2,=r2v;) 
+site Sc1_8  x = Sc1_8_x;  y = Sc1_8_y;  z = Sc1_8_z;  occ Sc 1.00000 beq_r_r2(beq_7,=Sc_beq;,d1,=rv;,d2,=r2v;) 
+site F1_1  x = F1_1_x;  y = F1_1_y;  z = F1_1_z;  occ F 1.00000 beq_r_r2(beq_8,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_2  x = F1_2_x;  y = F1_2_y;  z = F1_2_z;  occ F 1.00000 beq_r_r2(beq_9,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_3  x = F1_3_x;  y = F1_3_y;  z = F1_3_z;  occ F 1.00000 beq_r_r2(beq_10,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_4  x = F1_4_x;  y = F1_4_y;  z = F1_4_z;  occ F 1.00000 beq_r_r2(beq_11,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_5  x = F1_5_x;  y = F1_5_y;  z = F1_5_z;  occ F 1.00000 beq_r_r2(beq_12,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_6  x = F1_6_x;  y = F1_6_y;  z = F1_6_z;  occ F 1.00000 beq_r_r2(beq_13,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_7  x = F1_7_x;  y = F1_7_y;  z = F1_7_z;  occ F 1.00000 beq_r_r2(beq_14,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_8  x = F1_8_x;  y = F1_8_y;  z = F1_8_z;  occ F 1.00000 beq_r_r2(beq_15,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_9  x = F1_9_x;  y = F1_9_y;  z = F1_9_z;  occ F 1.00000 beq_r_r2(beq_16,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_10  x = F1_10_x;  y = F1_10_y;  z = F1_10_z;  occ F 1.00000 beq_r_r2(beq_17,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_11  x = F1_11_x;  y = F1_11_y;  z = F1_11_z;  occ F 1.00000 beq_r_r2(beq_18,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_12  x = F1_12_x;  y = F1_12_y;  z = F1_12_z;  occ F 1.00000 beq_r_r2(beq_19,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_13  x = F1_13_x;  y = F1_13_y;  z = F1_13_z;  occ F 1.00000 beq_r_r2(beq_20,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_14  x = F1_14_x;  y = F1_14_y;  z = F1_14_z;  occ F 1.00000 beq_r_r2(beq_21,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_15  x = F1_15_x;  y = F1_15_y;  z = F1_15_z;  occ F 1.00000 beq_r_r2(beq_22,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_16  x = F1_16_x;  y = F1_16_y;  z = F1_16_z;  occ F 1.00000 beq_r_r2(beq_23,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_17  x = F1_17_x;  y = F1_17_y;  z = F1_17_z;  occ F 1.00000 beq_r_r2(beq_24,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_18  x = F1_18_x;  y = F1_18_y;  z = F1_18_z;  occ F 1.00000 beq_r_r2(beq_25,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_19  x = F1_19_x;  y = F1_19_y;  z = F1_19_z;  occ F 1.00000 beq_r_r2(beq_26,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_20  x = F1_20_x;  y = F1_20_y;  z = F1_20_z;  occ F 1.00000 beq_r_r2(beq_27,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_21  x = F1_21_x;  y = F1_21_y;  z = F1_21_z;  occ F 1.00000 beq_r_r2(beq_28,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_22  x = F1_22_x;  y = F1_22_y;  z = F1_22_z;  occ F 1.00000 beq_r_r2(beq_29,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_23  x = F1_23_x;  y = F1_23_y;  z = F1_23_z;  occ F 1.00000 beq_r_r2(beq_30,=F_beq;,d1,=rv;,d2,=r2v;) 
+site F1_24  x = F1_24_x;  y = F1_24_y;  z = F1_24_z;  occ F 1.00000 beq_r_r2(beq_31,=F_beq;,d1,=rv;,d2,=r2v;) 
+scale = phase_scale; 
+'}}} 
+'{{{ ===Output Macros=== 
+macro ycalc_out_(o,u,v) 
+ { 
+ mode##o##_ScF3_20_singlemode_##u##_##v##_ycalc.txt 
+ } 
+ 
+Out_X_Ycalc(ycalc_out_(MODE,IRREP,VAR)) 
+ 
+macro yobs_out_(o,u,v) 
+ { 
+ mode##o##_ScF3_20_singlemode_##u##_##v##_yobs.txt 
+ } 
+ 
+Out_X_Yobs(yobs_out_(MODE,IRREP,VAR)) 
+ 
+macro file_out_(o,m,n) 
+ { 
+ mode##o##_##m##_ScF3_20_singlemode_##n##_out.txt 
+ } 
+out_prm_vals_on_convergence file_out_(MODE,IRREP,VAR) out_prm_vals_dependents_filter "lprm_*" 
+'}}}
