@@ -229,7 +229,7 @@ class sapa:
 
     #construct control and instrument parameter section of input file
     def instrument_pars(self, cycles, path, filenameformat, isneutron, qmax, lor, dq, alpha, startx, finishx, isrebin,
-                        rebindx, version):
+                        rebindx, soperlorch, version):
         entry = "'{{{ ===R-factors and control information==="
         entry += "r_wp 0.0 r_exp 0.0 r_p 0.0 r_wp_dash 0.0 r_exp_dash 0.0 weighted_Durbin_Watson 0.0 gof 0.0 \n"
         entry += "iters 10000000 \n"
@@ -258,12 +258,17 @@ class sapa:
         entry += "finish_X {0} \n" .format(finishx)
         if lor != 0:
             entry += " dQ_lor_damping(!dQ,{0},!lor,{1}) \n".format(dq, lor)
+            print(f'Using Lorentzian contribution to dQ of {lor}')
         else:
             entry += "   dQ_damping(!dQ,{0}) \n".format(dq)
         entry += "   convolute_Qmax_Sinc(!Qmax,{0}) \n".format(qmax)
         if alpha != 0:
             print("Warning: use of alpha parameter significantly slows down refinements")
             entry += " convolute_alpha(!alpha,{0}) \n".format(alpha)
+        if soperlorch != 0:
+            print(f'Correcting for Soper-Lorch function with broadening of {soperlorch}')
+            entry += f'convolute_SoperLorch(!d_zero, {soperlorch}) \n'
+
         entry += "'}}}"
         return entry
 
@@ -431,13 +436,13 @@ class sapa:
         return entry
 
     def write_inp(self, sample, filenameformat, isneutron, qmax, dq, startx, finishx, lattice, path=os.getcwd(), cycles=300,
-                  isrebin=False, bin="0.02", lor=0, alpha=0, filename="batch_modes.inp", refine_angles=False, version = "7", singlemode = False):
+                  isrebin=False, bin="0.02", lor=0, alpha=0, soperlorch=0, filename="batch_modes.inp", refine_angles=False, version = "7", singlemode = False):
         print("Creating input file...")
         self.filename = filename
         self.sample = sample
 
         entry = self.instrument_pars(cycles, path, filenameformat, isneutron, qmax, lor, dq, alpha,
-                                     startx, finishx, isrebin, rebindx=bin, version=version)
+                                     startx, finishx, isrebin, soperlorch=soperlorch, rebindx=bin, version=version)
         entry += self.phase(bin, lattice, refine_angles)
         if singlemode:
             entry += self.modes_single()
@@ -448,7 +453,7 @@ class sapa:
         f = open(filename, "w")
         f.write(entry)
         f.close()
-        self.meta = f"Run {sample} was executed with a fitting range of {startx}-{finishx} angstrom, with {cycles} cycles per irrep. Instrumental values of qmax = {qmax}, dq = {dq}, lor = {lor} and alpha = {alpha}."
+        self.meta = f"Run {sample} was executed with a fitting range of {startx}-{finishx} angstrom, with {cycles} cycles per irrep. Instrumental values of qmax = {qmax}, dq = {dq}, lor = {lor}, soperlorch = {soperlorch} and alpha = {alpha}."
         print("...%s written" % filename)
 
     def execute(self, temps, var_dict = {}, verbose=False, skip_irreps = []):
