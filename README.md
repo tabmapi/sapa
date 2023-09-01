@@ -1,8 +1,18 @@
-# sapa
-This repository contains the files necessary for running symmetry-adapted PDF analysis with Topas v6 and v7
+# SAPA
+This repository contains the files necessary for running symmetry-adapted PDF analysis with Topas v6 and v7.
 
-read_isodisplace_cif
+## Requirements
+* Topas v6 or v7
+* Python 3.6 or later
+* HDF5
+* Topas_for_PDF macros - available at github.com/pachater/topas
 
--requires an end of file line - this is added by default with Isodistort. If your cif doesn't have one, add #End as a new line at the end of the file
+## Authors
 
--requires each line to have no spaces at the start
+This code is predominantly written and maintained by Tobias Bird, with contributions from Mark Senn.
+
+## Contact
+
+For any issues with the code, contact tobias (dot) bird (at) diamond.ac.uk
+
+
