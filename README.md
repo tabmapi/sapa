@@ -19,4 +19,8 @@ This code is predominantly written and maintained by Tobias Bird, with contribut
 
 For any issues with the code, contact tobias (dot) bird (at) diamond.ac.uk
 
+## Changelog
+
+2024-05-10: The default behaviour of SAPA has now been changed to use normalised modes. This only affects the values the mode parameters have in Topas. This is more in line with the rest of the ISODISTORT user communit, and also makes processing results simpler.
+
 
