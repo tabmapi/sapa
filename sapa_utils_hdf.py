@@ -129,7 +129,8 @@ class sapa_utils_hdf:
         varnames = list(self.hdf[self.irreps[0]].keys())
         regex = re.compile(r"^[ab][0-9]+")
         varnames = [x for x in varnames if not regex.search(x)]
-        varnames.remove("norms")
+        if 'norms' in varnames:
+            varnames.remove("norms")
         for i in varnames:
             self.plot_var(i)
 
@@ -378,20 +379,29 @@ class sapa_utils_hdf:
 
         return uniques
 
-    def plot_singlemode(self):
-        nuniques = 0
+    def plot_singlemode(self, unique = True):
+        nmodes = 0
         for irrep in self.irreps:
-            uniques = self.unique_modes(irrep)
-            nuniques += len(uniques)
-        plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.gist_rainbow(np.linspace(0, 1, nuniques)))
+            if unique:
+                uniques = self.unique_modes(irrep)
+                nmodes += len(uniques)
+            else:
+                varlist = self.get_var_names(irrep)
+                nmodes += len(varlist)
+        plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.gist_rainbow(np.linspace(0, 1, nmodes)))
         markers = ["^", "v", "<", ">", "*", "o", "s"]
-        markerrpt = ceil(nuniques / len(markers))
+        markerrpt = ceil(nmodes / len(markers))
         markerrpt = markerrpt + 1
         markerlist = np.tile(markers, int(markerrpt))
         i = 0
         fig, ax = plt.subplots()
         for irrep in self.irreps:
-            modes = self.unique_modes(irrep)
+            if unique:
+                modes = self.unique_modes(irrep)
+            else:
+                modes = self.get_indices(irrep)
+                modes = [x+1 for x in modes]
+
             for mode in modes:
                 data = self.hdf[f'{irrep}/mode{mode}/delrwp'][:,0]
                 ax.plot(self.temps, data, linestyle = "-", marker = markerlist[i], markersize=5, linewidth=2.0, label = f'mode {mode} ({irrep})')
@@ -407,9 +417,9 @@ class sapa_utils_hdf:
         plt.close(fig)
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        fig.legend(handles, labels, 'center', ncol=3)
+        fig.legend(handles, labels, 'center', ncol=3, fontsize=5)
 
-        fig.savefig(f'{self.sample}_singlemode_rwp_legend.png')
+        fig.savefig(f'{self.sample}_singlemode_rwp_legend.png',bbox_inches="tight", dpi=900)
 
 
 
