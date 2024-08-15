@@ -641,7 +641,7 @@ class sapa:
             irreps = [x for x in irreps if x not in skip_irreps]
 
         hdf.attrs["irreps"] = irreps
-        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep="\s+", index_col=None,
+        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep=r"\s+", index_col=None,
                               names=["x", "ycalc"])
 
         hdf.create_dataset("r_vals", data = np.asarray(df_calc["x"]))
@@ -652,9 +652,9 @@ class sapa:
         for i in range(len(temps)):
             temp = temps[i]
             temp = temps[i]
-            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep="\s+", index_col=None,
+            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                names=["x", "ycalc"], header=None)
-            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep="\s+", index_col=None,
+            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                names=["x", "yobs"], header=None)
             dset = grp["ycalc"]
             dset[i, :] = np.asarray(df_c["ycalc"])
@@ -664,7 +664,7 @@ class sapa:
 
         for irrep in irreps:
             grp = hdf.create_group(f"{irrep}")
-            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt",sep="\s+",index_col=None)
+            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt",sep=r"\s+",index_col=None)
             dfn = dfn.drop([0])
             num_cycles = len(dfn["Rwp"])
             dfn = dfn.drop(["Cycle", "Iter"], axis=1)
@@ -699,7 +699,7 @@ class sapa:
             for i in range(len(temps)):
                 temp = temps[i]
                 fn = f"{irrep}_{self.sample}_{temp}_out.txt"
-                df = pd.read_csv(fn,sep="\s+",index_col=None)
+                df = pd.read_csv(fn,sep=r"\s+",index_col=None)
                 df = df.drop([0])
                 df = df.sort_values("Rwp")
                 df.index = range(len(df.index))
@@ -711,7 +711,7 @@ class sapa:
                     dset = grp[name]
                     dset[i,0:len(data)] = data
 
-                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt",sep="\s+",index_col=None)
+                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt",sep=r"\s+",index_col=None)
                 nmdf = nmdf.drop([0])
                 nmdf = nmdf.sort_values("Rwp")
                 nmdf.index = range(len(nmdf.index))
@@ -725,7 +725,7 @@ class sapa:
             for i in range(len(temps)):
                 temp = temps[i]
                 fn = f"{irrep}_{self.sample}_{temp}_out.txt"
-                df = pd.read_csv(fn, sep="\s+", index_col=None)
+                df = pd.read_csv(fn, sep=r"\s+", index_col=None)
                 df = df.drop([0])
                 df = df.sort_values("Rwp")
                 df.index = range(len(df.index))
@@ -740,9 +740,9 @@ class sapa:
 
             for i in range(len(temps)):
                 temp = temps[i]
-                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                       names=["x", "ycalc"], header=None)
-                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep="\s+", index_col=None,
+                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                       names=["x", "yobs"], header=None)
                 dset = grp["ycalc"]
                 dset[i,:] = np.asarray(df_c["ycalc"])
@@ -1089,7 +1089,7 @@ class sapa:
 
 
 
-    def execute_single(self, temps, unique = True, verbose = False, skip_irreps = []):
+    def execute_single(self, temps, unique = True, verbose = False, skip_irreps = [], var_dict = {}):
         self.temps = temps
         print("Finding Topas executables...")
         for root, dirs, files in os.walk("C:\\", topdown=False):
@@ -1145,20 +1145,24 @@ class sapa:
             print("Executing...")
         totaltime = 0
         for i in range(1, len(lines)):
+            ex_string = topaspath + " " + "\"" + inppath + "\""
             args = lines[i].split()
             temp = args[0]
             mode = args[1]
             irrep = args[2]
             start = time.time()
             print("Executing mode %s , irrep %s for temp %s" % (mode,irrep, temp))
+            ex_string += f' \" macro IRREP {{{irrep}}} macro VAR {{{temp}}} macro MODE {{{mode}}} '
+            if var_dict:
+                for key in var_dict:
+                    in_val = var_dict[key][temps.index(temp)]
+                    ex_string += f' macro {key} {{{in_val}}}'
+            ex_string += f' #define mode{mode} \"'
             if verbose == False:
-                os.system(
-                    topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} macro MODE {{{2}}} #define mode{2} \" > NUL ".format(
-                        irrep, temp, mode))
+                os.system(ex_string + " > NUL ")
             else:
-                os.system(
-                    topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} macro MODE {{{2}}} #define mode{2} \" > NUL ".format(
-                        irrep, temp, mode))
+                os.system(ex_string)
+
             lines[i] = "{0} {2}  {1}  True \n".format(temp, irrep, mode)
             with open("%s_monitor.txt" % self.sample, "w") as file:
                 file.writelines(lines)
@@ -1210,7 +1214,7 @@ class sapa:
             irreps = [x for x in irreps if x not in skip_irreps]
 
         hdf.attrs["irreps"] = irreps
-        df_calc = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temps[0]}_ycalc.txt", sep="\s+", index_col=None,
+        df_calc = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temps[0]}_ycalc.txt", sep=r"\s+", index_col=None,
                               names=["x", "ycalc"])
 
         hdf.create_dataset("r_vals", data = np.asarray(df_calc["x"]))
@@ -1221,9 +1225,9 @@ class sapa:
         for i in range(len(temps)):
 
             temp = temps[i]
-            df_c = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_ycalc.txt", sep="\s+", index_col=None,
+            df_c = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                names=["x", "ycalc"], header=None)
-            df_o = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_yobs.txt", sep="\s+", index_col=None,
+            df_o = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                names=["x", "yobs"], header=None)
             dset = grp["ycalc"]
             dset[i, :] = np.asarray(df_c["ycalc"])
@@ -1239,7 +1243,7 @@ class sapa:
                 modes = [x+1 for x in modes]
             for mode in modes:
                 grp = hdf.create_group(f"{irrep}/mode{mode}")
-                dfn = pd.read_csv(f"mode{mode}_{irrep}_{self.sample}_singlemode_{temps[0]}_out.txt",sep="\s+",index_col=None)
+                dfn = pd.read_csv(f"mode{mode}_{irrep}_{self.sample}_singlemode_{temps[0]}_out.txt",sep=r"\s+",index_col=None)
                 dfn = dfn.drop([0])
                 num_cycles = len(dfn["Rwp"])
                 dfn = dfn.drop(["Cycle", "Iter"], axis=1)
@@ -1258,7 +1262,7 @@ class sapa:
 
 
                     fn = f"mode{mode}_{irrep}_{self.sample}_singlemode_{temp}_out.txt"
-                    df = pd.read_csv(fn,sep="\s+",index_col=None)
+                    df = pd.read_csv(fn,sep=r"\s+",index_col=None)
                     df = df.drop([0])
                     df = df.sort_values("Rwp")
                     df.index = range(len(df.index))
@@ -1270,7 +1274,7 @@ class sapa:
                         dset = grp[name]
                         dset[i,0:len(data)] = data
 
-                    nmdf = pd.read_csv(f"mode0_nomodes_{self.sample}_singlemode_{temp}_out.txt",sep="\s+",index_col=None)
+                    nmdf = pd.read_csv(f"mode0_nomodes_{self.sample}_singlemode_{temp}_out.txt",sep=r"\s+",index_col=None)
                     nmdf = nmdf.drop([0])
                     nmdf = nmdf.sort_values("Rwp")
                     nmdf.index = range(len(nmdf.index))
@@ -1286,9 +1290,9 @@ class sapa:
                     temp = temps[i]
                     
                 
-                    df_c = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                    df_c = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                           names=["x", "ycalc"], header=None)
-                    df_o = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_yobs.txt", sep="\s+", index_col=None,
+                    df_o = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                           names=["x", "yobs"], header=None)
                     dset = grp["ycalc"]
                     dset[i,:] = np.asarray(df_c["ycalc"])
@@ -1606,7 +1610,7 @@ class sapa:
             irreps = [x for x in irreps if x not in skip_irreps]
 
         hdf.attrs["irreps"] = irreps
-        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep="\s+", index_col=None,
+        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep=r"\s+", index_col=None,
                               names=["x", "ycalc"])
 
         hdf.create_dataset("r_vals", data=np.asarray(df_calc["x"]))
@@ -1617,9 +1621,9 @@ class sapa:
         for i in range(len(temps)):
 
             temp = temps[i]
-            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep="\s+", index_col=None,
+            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                names=["x", "ycalc"], header=None)
-            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep="\s+", index_col=None,
+            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                names=["x", "yobs"], header=None)
             dset = grp["ycalc"]
             dset[i, :] = np.asarray(df_c["ycalc"])
@@ -1628,7 +1632,7 @@ class sapa:
 
         for irrep in irreps:
             grp = hdf.create_group(f"{irrep}")
-            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt", sep="\s+", index_col=None)
+            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt", sep=r"\s+", index_col=None)
             dfn = dfn.drop([0])
             num_cycles = len(dfn["Rwp"])
             dfn = dfn.drop(["Cycle", "Iter"], axis=1)
@@ -1647,7 +1651,7 @@ class sapa:
             for i in range(len(temps)):
                 temp = temps[i]
                 fn = f"{irrep}_{self.sample}_{temp}_out.txt"
-                df = pd.read_csv(fn, sep="\s+", index_col=None)
+                df = pd.read_csv(fn, sep=r"\s+", index_col=None)
                 df = df.drop([0])
                 df = df.sort_values("Rwp")
                 df.index = range(len(df.index))
@@ -1659,7 +1663,7 @@ class sapa:
                     dset = grp[name]
                     dset[i, 0:len(data)] = data
 
-                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt", sep="\s+", index_col=None)
+                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt", sep=r"\s+", index_col=None)
                 nmdf = nmdf.drop([0])
                 nmdf = nmdf.sort_values("Rwp")
                 nmdf.index = range(len(nmdf.index))
@@ -1674,9 +1678,9 @@ class sapa:
 
             for i in range(len(temps)):
                 temp = temps[i]
-                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                    names=["x", "ycalc"], header=None)
-                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep="\s+", index_col=None,
+                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                    names=["x", "yobs"], header=None)
                 dset = grp["ycalc"]
                 dset[i, :] = np.asarray(df_c["ycalc"])
@@ -1732,7 +1736,7 @@ class sapa:
             irreps = [x for x in irreps if x not in skip_irreps]
 
         hdf.attrs["irreps"] = irreps
-        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep="\s+", index_col=None,
+        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep=r"\s+", index_col=None,
                               names=["x", "ycalc"])
 
         hdf.create_dataset("r_vals", data = np.asarray(df_calc["x"]))
@@ -1743,9 +1747,9 @@ class sapa:
         for i in range(len(temps)):
             temp = temps[i]
             temp = temps[i]
-            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep="\s+", index_col=None,
+            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                names=["x", "ycalc"], header=None)
-            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep="\s+", index_col=None,
+            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                names=["x", "yobs"], header=None)
             dset = grp["ycalc"]
             dset[i, :] = np.asarray(df_c["ycalc"])
@@ -1755,7 +1759,7 @@ class sapa:
 
         for irrep in irreps:
             grp = hdf.create_group(f"{irrep}")
-            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt",sep="\s+",index_col=None)
+            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt",sep=r"\s+",index_col=None)
             dfn = dfn.drop([0])
             num_cycles = len(dfn["Rwp"])
             dfn = dfn.drop(["Cycle", "Iter"], axis=1)
@@ -1786,7 +1790,7 @@ class sapa:
             for i in range(len(temps)):
                 temp = temps[i]
                 fn = f"{irrep}_{self.sample}_{temp}_out.txt"
-                df = pd.read_csv(fn,sep="\s+",index_col=None)
+                df = pd.read_csv(fn,sep=r"\s+",index_col=None)
                 df = df.drop([0])
                 df = df.sort_values("Rwp")
                 df.index = range(len(df.index))
@@ -1798,7 +1802,7 @@ class sapa:
                     dset = grp[name]
                     dset[i,0:len(data)] = data
 
-                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt",sep="\s+",index_col=None)
+                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt",sep=r"\s+",index_col=None)
                 nmdf = nmdf.drop([0])
                 nmdf = nmdf.sort_values("Rwp")
                 nmdf.index = range(len(nmdf.index))
@@ -1812,7 +1816,7 @@ class sapa:
             for i in range(len(temps)):
                 temp = temps[i]
                 fn = f"{irrep}_{self.sample}_{temp}_out.txt"
-                df = pd.read_csv(fn, sep="\s+", index_col=None)
+                df = pd.read_csv(fn, sep=r"\s+", index_col=None)
                 df = df.drop([0])
                 df = df.sort_values("Rwp")
                 df.index = range(len(df.index))
@@ -1827,9 +1831,9 @@ class sapa:
 
             for i in range(len(temps)):
                 temp = temps[i]
-                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                       names=["x", "ycalc"], header=None)
-                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep="\s+", index_col=None,
+                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                       names=["x", "yobs"], header=None)
                 dset = grp["ycalc"]
                 dset[i,:] = np.asarray(df_c["ycalc"])
