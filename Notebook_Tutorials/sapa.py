@@ -310,13 +310,13 @@ class sapa:
         entry += "\n \n \n \n"
         return entry
 
-    def modes(self):
+    def modes(self, normalise=True):
         irreps = self.irrep_list()
         entry = "\'{{{====== MODE DEFINITIONS ===== \n"
         # creating the #ifdef and #ifndef blocks for each irrep
         # position in iso_label list of each irrep corresponds to position in transformation matrix
         # prm name is a{column}
-
+        norm_vals = self.iso_displacivemodenorm_value
         iso_label = self.iso_displacivemode_label
         for irrep in irreps:
             entry += "'{{{" + f"==={irrep}=== \n"
@@ -326,8 +326,11 @@ class sapa:
                 if m:
                     label = m.group(1)
                     if irrep == label:
-                        entry += "prm !a%s 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' %s \n" % (
-                        i + 1, iso_label[i])
+                        if normalise:
+                            entry += f"prm !a{i + 1} 0.00000 min -{0.1/float(norm_vals[i])} max {0.1/float(norm_vals[i])} val_on_continue = Rand({-0.05/float(norm_vals[i])},{0.05//float(norm_vals[i])}); \' {iso_label[i]} \n"
+                        else:
+
+                            entry += f"prm !a{i + 1} 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' {iso_label[i]} \n"
             entry += "#endif \n"
             entry += "#ifdef %s \n" % irrep
             for i in range(len(iso_label)):
@@ -335,8 +338,10 @@ class sapa:
                 if m:
                     label = m.group(1)
                     if irrep == label:
-                        entry += "prm a%s 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' %s \n" % (
-                        i + 1, iso_label[i])
+                        if normalise:
+                            entry += f"prm a{i + 1} 0.00000 min -{0.1 / float(norm_vals[i])} max {0.1 / float(norm_vals[i])} val_on_continue = Rand({-0.05 / float(norm_vals[i])},{0.05 // float(norm_vals[i])}); \' {iso_label[i]} \n"
+                        else:
+                            f"prm a{i + 1} 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' {iso_label[i]} \n"
             entry += "#endif \n"
             entry += "'}}} \n"
         entry += "'}}}"
@@ -350,27 +355,44 @@ class sapa:
         dm_vals = self.iso_displacivemodematrix_value
         dc_labels = self.iso_deltacoordinate_label
 
+
         for i in range(len(dc_labels)):
             dc_cols = []
             dc_vals = []
-            entry += "prm %s =" % dc_labels[i]
+            dc_norms = []
+            entry += f"prm {dc_labels[i]} ="
             for j in range(len(dm_rows)):
 
                 if int(dm_rows[j]) == i + 1:
                     dc_cols.append(dm_cols[j])
                     dc_vals.append(dm_vals[j])
+                    dc_norms.append(norm_vals[int(dm_cols[j])-1])
 
-            for j in range(len(dc_cols)):
-                if j == len(dc_cols) - 1:
-                    if float(dc_vals[j]) > 0:
-                        entry += " + %s*a%s ;: 0.0 \n" % (dc_vals[j], dc_cols[j])
+            if normalise:
+                for j in range(len(dc_cols)):
+                    if j == len(dc_cols) - 1:
+                        if float(dc_vals[j]) > 0:
+                            entry += f" + {dc_norms[j]}*{dc_vals[j]}*a{dc_cols[j]} ;: 0.0 \n"
+                        else:
+                            entry += f" {dc_norms[j]}*{dc_vals[j]}*a{dc_cols[j]} ;: 0.0\n"
                     else:
-                        entry += " %s*a%s ;: 0.0\n" % (dc_vals[j], dc_cols[j])
-                else:
-                    if float(dc_vals[j]) > 0:
-                        entry += " + %s*a%s " % (dc_vals[j], dc_cols[j])
+                        if float(dc_vals[j]) > 0:
+                            entry += f" + {dc_norms[j]}*{dc_vals[j]}*a{dc_cols[j]} "
+                        else:
+                            entry += f" {dc_norms[j]}*{dc_vals[j]}*a{dc_cols[j]} "
+            else:
+
+                for j in range(len(dc_cols)):
+                    if j == len(dc_cols) - 1:
+                        if float(dc_vals[j]) > 0:
+                            entry += " + %s*a%s ;: 0.0 \n" % (dc_vals[j], dc_cols[j])
+                        else:
+                            entry += " %s*a%s ;: 0.0\n" % (dc_vals[j], dc_cols[j])
                     else:
-                        entry += " %s*a%s " % (dc_vals[j], dc_cols[j])
+                        if float(dc_vals[j]) > 0:
+                            entry += " + %s*a%s " % (dc_vals[j], dc_cols[j])
+                        else:
+                            entry += " %s*a%s " % (dc_vals[j], dc_cols[j])
         entry += "'}}}"
         entry += "\n"
         entry += "'{{{ ===Site Definitions==="
@@ -436,7 +458,7 @@ class sapa:
         return entry
 
     def write_inp(self, sample, filenameformat, isneutron, qmax, dq, startx, finishx, lattice, path=os.getcwd(), cycles=300,
-                  isrebin=False, bin="0.02", lor=0, alpha=0, soperlorch=0, filename="batch_modes.inp", refine_angles=False, version = "7", singlemode = False):
+                  isrebin=False, bin="0.02", lor=0, alpha=0, soperlorch=0, filename="batch_modes.inp", refine_angles=False, version = "7", singlemode = False, normalise=True):
         print("Creating input file...")
         self.filename = filename
         self.sample = sample
@@ -600,10 +622,11 @@ class sapa:
         print(start_string, end_string)
         return start_string, end_string
 
-    def create_hdf5(self,temps, skip_irreps = []):
+    def create_hdf5_base(self, temps, skip_irreps=[]):
 
         if not hasattr(self, "sample"):
             self.sample = input("Enter sample name to create hdf file for: ")
+
 
         if not hasattr(self, "meta"):
             self.meta = input("Enter some information to store to remind you of parameters used in this sapa run: ")
@@ -618,7 +641,7 @@ class sapa:
             irreps = [x for x in irreps if x not in skip_irreps]
 
         hdf.attrs["irreps"] = irreps
-        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep="\s+", index_col=None,
+        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep=r"\s+", index_col=None,
                               names=["x", "ycalc"])
 
         hdf.create_dataset("r_vals", data = np.asarray(df_calc["x"]))
@@ -629,9 +652,9 @@ class sapa:
         for i in range(len(temps)):
             temp = temps[i]
             temp = temps[i]
-            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep="\s+", index_col=None,
+            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                names=["x", "ycalc"], header=None)
-            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep="\s+", index_col=None,
+            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                names=["x", "yobs"], header=None)
             dset = grp["ycalc"]
             dset[i, :] = np.asarray(df_c["ycalc"])
@@ -641,7 +664,7 @@ class sapa:
 
         for irrep in irreps:
             grp = hdf.create_group(f"{irrep}")
-            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt",sep="\s+",index_col=None)
+            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt",sep=r"\s+",index_col=None)
             dfn = dfn.drop([0])
             num_cycles = len(dfn["Rwp"])
             dfn = dfn.drop(["Cycle", "Iter"], axis=1)
@@ -676,7 +699,7 @@ class sapa:
             for i in range(len(temps)):
                 temp = temps[i]
                 fn = f"{irrep}_{self.sample}_{temp}_out.txt"
-                df = pd.read_csv(fn,sep="\s+",index_col=None)
+                df = pd.read_csv(fn,sep=r"\s+",index_col=None)
                 df = df.drop([0])
                 df = df.sort_values("Rwp")
                 df.index = range(len(df.index))
@@ -688,7 +711,7 @@ class sapa:
                     dset = grp[name]
                     dset[i,0:len(data)] = data
 
-                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt",sep="\s+",index_col=None)
+                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt",sep=r"\s+",index_col=None)
                 nmdf = nmdf.drop([0])
                 nmdf = nmdf.sort_values("Rwp")
                 nmdf.index = range(len(nmdf.index))
@@ -702,7 +725,7 @@ class sapa:
             for i in range(len(temps)):
                 temp = temps[i]
                 fn = f"{irrep}_{self.sample}_{temp}_out.txt"
-                df = pd.read_csv(fn, sep="\s+", index_col=None)
+                df = pd.read_csv(fn, sep=r"\s+", index_col=None)
                 df = df.drop([0])
                 df = df.sort_values("Rwp")
                 df.index = range(len(df.index))
@@ -717,9 +740,9 @@ class sapa:
 
             for i in range(len(temps)):
                 temp = temps[i]
-                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                       names=["x", "ycalc"], header=None)
-                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep="\s+", index_col=None,
+                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                       names=["x", "yobs"], header=None)
                 dset = grp["ycalc"]
                 dset[i,:] = np.asarray(df_c["ycalc"])
@@ -1050,7 +1073,7 @@ class sapa:
             m = re.search("[a-zA-Z0-9_]+:[a-z]:(dsp|occ)", iso_label[indices[0]])
             type = m.group(0)
 
-            m = re.search("\][a-zA-Z0-9]+\([a-z]", iso_label[indices[0]])
+            m = re.search("\][a-zA-Z0-9'_]+\([a-z]", iso_label[indices[0]])
             char = m.group(0)
             char = char.rstrip(char[-1])
 
@@ -1066,7 +1089,7 @@ class sapa:
 
 
 
-    def execute_single(self, temps, unique = True, verbose = False, skip_irreps = []):
+    def execute_single(self, temps, unique = True, verbose = False, skip_irreps = [], var_dict = {}):
         self.temps = temps
         print("Finding Topas executables...")
         for root, dirs, files in os.walk("C:\\", topdown=False):
@@ -1122,20 +1145,24 @@ class sapa:
             print("Executing...")
         totaltime = 0
         for i in range(1, len(lines)):
+            ex_string = topaspath + " " + "\"" + inppath + "\""
             args = lines[i].split()
             temp = args[0]
             mode = args[1]
             irrep = args[2]
             start = time.time()
             print("Executing mode %s , irrep %s for temp %s" % (mode,irrep, temp))
+            ex_string += f' \" macro IRREP {{{irrep}}} macro VAR {{{temp}}} macro MODE {{{mode}}} '
+            if var_dict:
+                for key in var_dict:
+                    in_val = var_dict[key][temps.index(temp)]
+                    ex_string += f' macro {key} {{{in_val}}}'
+            ex_string += f' #define mode{mode} \"'
             if verbose == False:
-                os.system(
-                    topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} macro MODE {{{2}}} #define mode{2} \" > NUL ".format(
-                        irrep, temp, mode))
+                os.system(ex_string + " > NUL ")
             else:
-                os.system(
-                    topaspath + " " + "\"" + inppath + "\"" + "   \" macro IRREP {{{0}}} macro VAR {{{1}}} macro MODE {{{2}}} #define mode{2} \" > NUL ".format(
-                        irrep, temp, mode))
+                os.system(ex_string)
+
             lines[i] = "{0} {2}  {1}  True \n".format(temp, irrep, mode)
             with open("%s_monitor.txt" % self.sample, "w") as file:
                 file.writelines(lines)
@@ -1187,7 +1214,7 @@ class sapa:
             irreps = [x for x in irreps if x not in skip_irreps]
 
         hdf.attrs["irreps"] = irreps
-        df_calc = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temps[0]}_ycalc.txt", sep="\s+", index_col=None,
+        df_calc = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temps[0]}_ycalc.txt", sep=r"\s+", index_col=None,
                               names=["x", "ycalc"])
 
         hdf.create_dataset("r_vals", data = np.asarray(df_calc["x"]))
@@ -1198,9 +1225,9 @@ class sapa:
         for i in range(len(temps)):
 
             temp = temps[i]
-            df_c = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_ycalc.txt", sep="\s+", index_col=None,
+            df_c = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                names=["x", "ycalc"], header=None)
-            df_o = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_yobs.txt", sep="\s+", index_col=None,
+            df_o = pd.read_csv(f"mode0_{self.sample}_singlemode_nomodes_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                names=["x", "yobs"], header=None)
             dset = grp["ycalc"]
             dset[i, :] = np.asarray(df_c["ycalc"])
@@ -1216,7 +1243,7 @@ class sapa:
                 modes = [x+1 for x in modes]
             for mode in modes:
                 grp = hdf.create_group(f"{irrep}/mode{mode}")
-                dfn = pd.read_csv(f"mode{mode}_{irrep}_{self.sample}_singlemode_{temps[0]}_out.txt",sep="\s+",index_col=None)
+                dfn = pd.read_csv(f"mode{mode}_{irrep}_{self.sample}_singlemode_{temps[0]}_out.txt",sep=r"\s+",index_col=None)
                 dfn = dfn.drop([0])
                 num_cycles = len(dfn["Rwp"])
                 dfn = dfn.drop(["Cycle", "Iter"], axis=1)
@@ -1235,7 +1262,7 @@ class sapa:
 
 
                     fn = f"mode{mode}_{irrep}_{self.sample}_singlemode_{temp}_out.txt"
-                    df = pd.read_csv(fn,sep="\s+",index_col=None)
+                    df = pd.read_csv(fn,sep=r"\s+",index_col=None)
                     df = df.drop([0])
                     df = df.sort_values("Rwp")
                     df.index = range(len(df.index))
@@ -1247,7 +1274,7 @@ class sapa:
                         dset = grp[name]
                         dset[i,0:len(data)] = data
 
-                    nmdf = pd.read_csv(f"mode0_nomodes_{self.sample}_singlemode_{temp}_out.txt",sep="\s+",index_col=None)
+                    nmdf = pd.read_csv(f"mode0_nomodes_{self.sample}_singlemode_{temp}_out.txt",sep=r"\s+",index_col=None)
                     nmdf = nmdf.drop([0])
                     nmdf = nmdf.sort_values("Rwp")
                     nmdf.index = range(len(nmdf.index))
@@ -1263,9 +1290,9 @@ class sapa:
                     temp = temps[i]
                     
                 
-                    df_c = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_ycalc.txt", sep="\s+", index_col=None,
+                    df_c = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                           names=["x", "ycalc"], header=None)
-                    df_o = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_yobs.txt", sep="\s+", index_col=None,
+                    df_o = pd.read_csv(f"mode{mode}_{self.sample}_singlemode_{irrep}_{temp}_yobs.txt", sep=r"\s+", index_col=None,
                                           names=["x", "yobs"], header=None)
                     dset = grp["ycalc"]
                     dset[i,:] = np.asarray(df_c["ycalc"])
@@ -1401,6 +1428,432 @@ class sapa:
             print("Completed irrep {0} for temp {1}. Process took {2}s ({3} minutes)".format(irrep, temp, processtime,
                                                                                              processtime / 60))
             print("Estimated {0} hours to completion.".format(remainingtime))
+
+    def write_inp_occ(self, sample, filenameformat, isneutron, qmax, dq, startx, finishx, lattice, path=os.getcwd(),
+                  cycles=300,
+                  isrebin=False, bin="0.02", lor=0, alpha=0, soperlorch=0, filename="batch_modes.inp",
+                  refine_angles=False, version="7", singlemode=False):
+        print("Creating input file...")
+        self.filename = filename
+        self.sample = sample
+
+        entry = self.instrument_pars(cycles, path, filenameformat, isneutron, qmax, lor, dq, alpha,
+                                     startx, finishx, isrebin, soperlorch=soperlorch, rebindx=bin, version=version)
+        entry += self.phase(bin, lattice, refine_angles)
+        if singlemode:
+            entry += self.modes_single()
+            entry += self.output_single(sample)
+        else:
+            entry += self.modes_occ()
+            entry += self.output(sample)
+        f = open(filename, "w")
+        f.write(entry)
+        f.close()
+        self.meta = f"Run {sample} was executed with a fitting range of {startx}-{finishx} angstrom, with {cycles} cycles per irrep. Instrumental values of qmax = {qmax}, dq = {dq}, lor = {lor}, soperlorch = {soperlorch} and alpha = {alpha}."
+        print("...%s written" % filename)
+
+    def modes_occ(self):
+        irreps = self.irrep_list()
+        entry = "\'{{{====== MODE DEFINITIONS ===== \n"
+        # creating the #ifdef and #ifndef blocks for each irrep
+        # position in iso_label list of each irrep corresponds to position in transformation matrix
+        # prm name is a{column}
+
+        iso_label = self.iso_occupancymode_label
+        for irrep in irreps:
+            entry += "'{{{" + f"==={irrep}=== \n"
+            entry += "#ifndef %s \n" % irrep
+            for i in range(len(iso_label)):
+                m = re.search("\](.+?)\(", iso_label[i])
+                if m:
+                    label = m.group(1)
+                    if irrep == label:
+                        entry += "prm !a%s 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' %s \n" % (
+                        i + 1, iso_label[i])
+            entry += "#endif \n"
+            entry += "#ifdef %s \n" % irrep
+            mode_labels = []
+            mode_nums = []
+            for i in range(len(iso_label)):
+                m = re.search("\](.+?)\(", iso_label[i])
+                if m:
+                    label = m.group(1)
+                    if irrep == label:
+                        mode_labels.append(iso_label[i])
+                        mode_nums.append(i+1)
+                        #entry += "prm a%s 0.00000 min -0.1 max 0.1 val_on_continue = Rand(-0.05,0.05); \' %s \n" % (
+                        #i + 1, iso_label[i])
+            mode_chars = [x.split('occ]')[1] for x in mode_labels]
+            mode_chars = set(mode_chars)
+            for char in mode_chars:
+                charp = char.replace('(','')
+                charp = charp.replace(')','')
+                if irrep.endswith('+'):
+                    irr = irrep.replace('+','')
+                elif irrep.endswith('-'):
+                    irr = irrep.replace('-','')
+
+                entry += f"prm {charp}_{irr} 0.0000 min -1 max 1 val_on_continue = Rand(-0.05,0.05); \n"
+                n = 1
+                for i in range(len(mode_labels)):
+
+                    if mode_labels[i].endswith(char) and n==1:
+                        entry += f'prm a{mode_nums[i]} ={charp}_{irr}; \' {mode_labels[i]} \n'
+                        n += 1
+                    elif mode_labels[i].endswith(char) and n==2:
+                        entry += f'prm a{mode_nums[i]} =-1*{charp}_{irr}; \' {mode_labels[i]} \n'
+
+
+
+
+
+
+            entry += "#endif \n"
+            entry += "'}}} \n"
+        entry += "'}}}"
+        entry += "\n \n \n \n"
+        entry += "\'{{{===== MODE TO DELTAS TRANSFORMATION ===== \n"
+        # write the matrix transformation
+        # for each deltacoordinate, e.g. site1_dx, the script finds the non-zero columns and converts to parameter names
+        # deltacoord_j = sum_i(dmval_ij*a_i)
+        dm_rows = self.iso_occupancymodematrix_row
+        dm_cols = self.iso_occupancymodematrix_col
+        dm_vals = self.iso_occupancymodematrix_value
+        dc_labels = self.iso_deltaoccupancy_label
+
+        for i in range(len(dc_labels)):
+            dc_cols = []
+            dc_vals = []
+            entry += "prm %s =" % dc_labels[i]
+            for j in range(len(dm_rows)):
+
+                if int(dm_rows[j]) == i + 1:
+                    dc_cols.append(dm_cols[j])
+                    dc_vals.append(dm_vals[j])
+
+            for j in range(len(dc_cols)):
+                if j == len(dc_cols) - 1:
+                    if float(dc_vals[j]) > 0:
+                        entry += " + %s*a%s ;: 0.0 \n" % (dc_vals[j], dc_cols[j])
+                    else:
+                        entry += " %s*a%s ;: 0.0\n" % (dc_vals[j], dc_cols[j])
+                else:
+                    if float(dc_vals[j]) > 0:
+                        entry += " + %s*a%s " % (dc_vals[j], dc_cols[j])
+                    else:
+                        entry += " %s*a%s " % (dc_vals[j], dc_cols[j])
+        entry += "'}}}"
+        entry += "\n"
+        entry += "'{{{ ===Site Definitions==="
+        # define site coordinates, e.g. site_distorted_x = site_x + site_dx
+        icl = self.iso_occupancy_label
+        print(len(icl))
+        #icf = self.iso_coordinate_formula
+        entry += "\n"
+        xs = self.atom_site_occupancy
+
+        formula = []
+        for i in range(len(xs)):
+            formula.append(xs[i])
+
+        print(len(formula))
+        for i in range(len(icl)):
+            # formula = icf[i].strip("\"")
+            entry += "prm %s = %s + %s;\n" % (icl[i], xs[i], dc_labels[i])
+
+        entry += "\n"
+        #get list of elements involved - this is used for beq function
+        atoms = self.atom_site_type_symbol
+        elements = set(atoms)
+        elements = list(elements)
+        elements = [x.strip("+-123456789") for x in elements]
+        beq_vars = []
+        for i in elements:
+            bv = i + "_beq"
+            beq_vars.append(bv)
+        for i in beq_vars:
+            entry += "prm %s 0.01 min 0 max 1 val_on_continue = Rand(0,0.1); \n" % i
+        entry += "prm rv 0.01 min 0 val_on_continue = Rand(0,0.1); \n"
+        entry += "prm r2v 0.01 min 0 val_on_continue = Rand(0,0.1); \n"
+        entry += "prm phase_scale 1 \n"
+        sites = self.atom_site_label
+        occs = self.atom_site_occupancy
+        for i in range(len(sites)):
+            entry += "site %s " % sites[i]
+            entry += " x = %s; " % self.atom_site_fract_x[i]
+            entry += " y = %s; " % self.atom_site_fract_y[i]
+            entry += " z = %s; " % self.atom_site_fract_z[i]
+            entry += " occ %s = %s;" % (atoms[i].strip("+-123456789"), icl[i])
+            for j in range(len(elements)):
+                if atoms[i].strip("+-123456789") == elements[j]:
+                    bn = "beq_" + str(i)
+                    entry += "beq_r_r2(%s,=%s;,d1,=rv;,d2,=r2v;) \n" % (bn, beq_vars[j])
+        entry += "scale = phase_scale; \n"
+        entry += "'}}} \n"
+        return entry
+
+    def create_hdf5_occ(self, temps, skip_irreps=[]):
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name to create hdf file for: ")
+
+        if not hasattr(self, "meta"):
+            self.meta = input("Enter some information to store to remind you of parameters used in this sapa run: ")
+
+        hdf = h5py.File(f"{self.sample}.hdf5", "w")
+        hdf.attrs["metadata"] = self.meta
+        tempsf = [float(x) for x in temps]
+        temp_arr = np.asarray(tempsf)
+        hdf["temps"] = temp_arr
+        irreps = self.irrep_list()
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+
+        hdf.attrs["irreps"] = irreps
+        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep=r"\s+", index_col=None,
+                              names=["x", "ycalc"])
+
+        hdf.create_dataset("r_vals", data=np.asarray(df_calc["x"]))
+
+        grp = hdf.create_group("nomodes")
+        grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
+        grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
+        for i in range(len(temps)):
+
+            temp = temps[i]
+            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
+                               names=["x", "ycalc"], header=None)
+            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep=r"\s+", index_col=None,
+                               names=["x", "yobs"], header=None)
+            dset = grp["ycalc"]
+            dset[i, :] = np.asarray(df_c["ycalc"])
+            dset = grp["yobs"]
+            dset[i, :] = np.asarray(df_o["yobs"])
+
+        for irrep in irreps:
+            grp = hdf.create_group(f"{irrep}")
+            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt", sep=r"\s+", index_col=None)
+            dfn = dfn.drop([0])
+            num_cycles = len(dfn["Rwp"])
+            dfn = dfn.drop(["Cycle", "Iter"], axis=1)
+            prms = dfn.columns
+            for prm in prms:
+                grp.create_dataset(prm, (len(temps), num_cycles))
+                hdf[f"{irrep}/{prm}"].dims[0].label = "Temps"
+            grp.create_dataset("delrwp", (len(temps), num_cycles))
+
+            # print(irrep, norms)
+
+
+            grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
+            grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
+
+            for i in range(len(temps)):
+                temp = temps[i]
+                fn = f"{irrep}_{self.sample}_{temp}_out.txt"
+                df = pd.read_csv(fn, sep=r"\s+", index_col=None)
+                df = df.drop([0])
+                df = df.sort_values("Rwp")
+                df.index = range(len(df.index))
+                df = df.drop(["Cycle", "Iter"], axis=1)
+                names = df.columns
+                for name in names:
+                    data = np.asarray(df[name])
+                    # print(name, temp,data.shape)
+                    dset = grp[name]
+                    dset[i, 0:len(data)] = data
+
+                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt", sep=r"\s+", index_col=None)
+                nmdf = nmdf.drop([0])
+                nmdf = nmdf.sort_values("Rwp")
+                nmdf.index = range(len(nmdf.index))
+                nm_rwp = nmdf.at[0, "Rwp"]
+
+                rwp = np.asarray(df["Rwp"])
+                delrwp = rwp - nm_rwp
+                dset = grp["delrwp"]
+                dset[i, 0:len(delrwp)] = delrwp
+
+
+
+            for i in range(len(temps)):
+                temp = temps[i]
+                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
+                                   names=["x", "ycalc"], header=None)
+                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep=r"\s+", index_col=None,
+                                   names=["x", "yobs"], header=None)
+                dset = grp["ycalc"]
+                dset[i, :] = np.asarray(df_c["ycalc"])
+                dset = grp["yobs"]
+                dset[i, :] = np.asarray(df_o["yobs"])
+
+        self.temps = temps
+        hdf.close()
+
+    def import_amps(self):
+        if not hasattr(self, "filename"):
+            self.filename = input("Enter filename: ")
+        if self.filename.endswith(".inp") == False:
+            self.filename += ".inp"
+
+        inp = open(self.filename, 'r')
+        inp_lines = inp.readlines()
+        inp.close()
+
+        for i in range(len(self.iso_displacivemode_value)):
+            if float(self.iso_displacivemode_value[i]) != 0.0:
+                print('writing mode')
+                mode_n = i+1
+                norm = self.iso_displacivemodenorm_value[i]
+                iso_label = self.iso_displacivemode_label[i]
+                mode_val = float(self.iso_displacivemode_value[i])
+                for j in range(len(inp_lines)):
+                    if inp_lines[j].startswith(f'prm a{mode_n}'):
+                        inp_lines[j] = f"prm a{i + 1} {mode_val} min -{(0.1 / float(norm))+mode_val} max {(0.1 / float(norm))+mode_val} val_on_continue = Rand({mode_val+(-0.05 / float(norm))},{mode_val+(0.05 / float(norm))}); \' {iso_label} \n"
+                    elif inp_lines[j].startswith(f'prm !a{mode_n}'):
+                        inp_lines[j] = f"prm !a{i + 1} {mode_val} min -{(0.1 / float(norm)) + mode_val} max {(0.1 / float(norm)) + mode_val} val_on_continue = Rand({mode_val + (-0.05 / float(norm))},{mode_val + (0.05 / float(norm))}); \' {iso_label} \n"
+
+        with open(self.filename, 'w') as f:
+            for line in inp_lines:
+                f.write(line)
+
+    def create_hdf5_normalise(self, temps, skip_irreps=[]):
+
+        if not hasattr(self, "sample"):
+            self.sample = input("Enter sample name to create hdf file for: ")
+
+
+        if not hasattr(self, "meta"):
+            self.meta = input("Enter some information to store to remind you of parameters used in this sapa run: ")
+
+        hdf = h5py.File(f"{self.sample}.hdf5","w")
+        hdf.attrs["metadata"] = self.meta
+        tempsf = [float(x) for x in temps]
+        temp_arr = np.asarray(tempsf)
+        hdf["temps"] = temp_arr
+        irreps = self.irrep_list()
+        if skip_irreps:
+            irreps = [x for x in irreps if x not in skip_irreps]
+
+        hdf.attrs["irreps"] = irreps
+        df_calc = pd.read_csv(f"{self.sample}_{irreps[0]}_{temps[0]}_ycalc.txt", sep=r"\s+", index_col=None,
+                              names=["x", "ycalc"])
+
+        hdf.create_dataset("r_vals", data = np.asarray(df_calc["x"]))
+
+        grp = hdf.create_group("nomodes")
+        grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
+        grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
+        for i in range(len(temps)):
+            temp = temps[i]
+            temp = temps[i]
+            df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
+                               names=["x", "ycalc"], header=None)
+            df_o = pd.read_csv(f"{self.sample}_nomodes_{temp}_yobs.txt", sep=r"\s+", index_col=None,
+                               names=["x", "yobs"], header=None)
+            dset = grp["ycalc"]
+            dset[i, :] = np.asarray(df_c["ycalc"])
+            dset = grp["yobs"]
+            dset[i, :] = np.asarray(df_o["yobs"])
+
+
+        for irrep in irreps:
+            grp = hdf.create_group(f"{irrep}")
+            dfn = pd.read_csv(f"{irrep}_{self.sample}_{temps[0]}_out.txt",sep=r"\s+",index_col=None)
+            dfn = dfn.drop([0])
+            num_cycles = len(dfn["Rwp"])
+            dfn = dfn.drop(["Cycle", "Iter"], axis=1)
+            prms = dfn.columns
+            for prm in prms:
+                grp.create_dataset(prm, (len(temps), num_cycles))
+                hdf[f"{irrep}/{prm}"].dims[0].label = "Temps"
+            grp.create_dataset("delrwp", (len(temps), num_cycles))
+            if hasattr(self, "iso_displacivemodenorm_value") and not hasattr(self, "iso_occupancymodenorm_value"):
+                regex = re.compile(r"^a[0-9]+")
+                mode_prms = [x for x in prms if regex.search(x)]
+
+
+            elif hasattr(self, "iso_occupancymodenorm_value") and not hasattr(self, "iso_displacivemodenorm_value"):
+                regex = re.compile(r"^b[0-9]+")
+                mode_prms = [x for x in prms if regex.search(x)]
+
+
+
+            #print(irrep, norms)
+
+            grp.create_dataset("mode_amps", (len(temps), num_cycles))
+            grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
+            grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
+
+
+
+            for i in range(len(temps)):
+                temp = temps[i]
+                fn = f"{irrep}_{self.sample}_{temp}_out.txt"
+                df = pd.read_csv(fn,sep=r"\s+",index_col=None)
+                df = df.drop([0])
+                df = df.sort_values("Rwp")
+                df.index = range(len(df.index))
+                df = df.drop(["Cycle", "Iter"], axis = 1)
+                names = df.columns
+                for name in names:
+                    data = np.asarray(df[name])
+                    #print(name, temp,data.shape)
+                    dset = grp[name]
+                    dset[i,0:len(data)] = data
+
+                nmdf = pd.read_csv(f"nomodes_{self.sample}_{temp}_out.txt",sep=r"\s+",index_col=None)
+                nmdf = nmdf.drop([0])
+                nmdf = nmdf.sort_values("Rwp")
+                nmdf.index = range(len(nmdf.index))
+                nm_rwp = nmdf.at[0, "Rwp"]
+
+                rwp = np.asarray(df["Rwp"])
+                delrwp = rwp - nm_rwp
+                dset = grp["delrwp"]
+                dset[i,0:len(delrwp)] = delrwp
+
+            for i in range(len(temps)):
+                temp = temps[i]
+                fn = f"{irrep}_{self.sample}_{temp}_out.txt"
+                df = pd.read_csv(fn, sep=r"\s+", index_col=None)
+                df = df.drop([0])
+                df = df.sort_values("Rwp")
+                df.index = range(len(df.index))
+                df["mode_amps"] = (df[mode_prms[0]]) ** 2
+                for j in range(1, mode_prms):
+                    df["mode_amps"] += (df[mode_prms[j]]) ** 2
+                df["mode_amps"] = np.sqrt(df["mode_amps"])
+                dset = grp["mode_amps"]
+                ma_data = np.asarray(df["mode_amps"])
+                dset[i,0:len(ma_data)] = ma_data
+
+
+            for i in range(len(temps)):
+                temp = temps[i]
+                df_c = pd.read_csv(f"{self.sample}_{irrep}_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
+                                      names=["x", "ycalc"], header=None)
+                df_o = pd.read_csv(f"{self.sample}_{irrep}_{temp}_yobs.txt", sep=r"\s+", index_col=None,
+                                      names=["x", "yobs"], header=None)
+                dset = grp["ycalc"]
+                dset[i,:] = np.asarray(df_c["ycalc"])
+                dset = grp["yobs"]
+                dset[i,:] = np.asarray(df_o["yobs"])
+
+        self.temps = temps
+        hdf.close()
+
+    def create_hdf5(self, temps, singlemode=False, occupancy=False, normalise=True, unique=True, skip_irreps=[]):
+        if normalise:
+            self.create_hdf5_normalise(temps, skip_irreps)
+        elif singlemode:
+            self.create_hdf5_single(temps, unique, skip_irreps)
+        elif occupancy:
+            self.create_hdf5_occ(temps, skip_irreps)
+        else:
+            self.create_hdf5_base(temps, skip_irreps)
+
+
 
 
 
