@@ -372,14 +372,16 @@ class sapa:
                 for j in range(len(dc_cols)):
                     if j == len(dc_cols) - 1:
                         if float(dc_vals[j]) > 0:
-                            entry += f" + {dc_norms[j]}*{dc_vals[j]}*a{dc_cols[j]} ;: 0.0 \n"
+                            entry += f" + {dc_vals[j]}*{dc_norms[j]}*a{dc_cols[j]} ;: 0.0 \n"
                         else:
-                            entry += f" {dc_norms[j]}*{dc_vals[j]}*a{dc_cols[j]} ;: 0.0\n"
+                            dcv = dc_vals[j][1:]
+                            entry += f" - {dcv}*{dc_norms[j]}*a{dc_cols[j]} ;: 0.0\n"
                     else:
                         if float(dc_vals[j]) > 0:
-                            entry += f" + {dc_norms[j]}*{dc_vals[j]}*a{dc_cols[j]} "
+                            entry += f" + {dc_vals[j]}*{dc_norms[j]}*a{dc_cols[j]} "
                         else:
-                            entry += f" {dc_norms[j]}*{dc_vals[j]}*a{dc_cols[j]} "
+                            dcv = dc_vals[j][1:]
+                            entry += f" - {dcv}*{dc_norms[j]}*a{dc_cols[j]} "
             else:
 
                 for j in range(len(dc_cols)):
@@ -622,7 +624,7 @@ class sapa:
         print(start_string, end_string)
         return start_string, end_string
 
-    def create_hdf5_base(self, temps, skip_irreps=[]):
+    def create_hdf5_base(self, temps, skip_irreps=[], index=[]):
 
         if not hasattr(self, "sample"):
             self.sample = input("Enter sample name to create hdf file for: ")
@@ -633,7 +635,10 @@ class sapa:
 
         hdf = h5py.File(f"{self.sample}.hdf5","w")
         hdf.attrs["metadata"] = self.meta
-        tempsf = [float(x) for x in temps]
+        if index:
+            tempsf = [float(x) for x in index]
+        else:
+            tempsf = [float(x) for x in temps]
         temp_arr = np.asarray(tempsf)
         hdf["temps"] = temp_arr
         irreps = self.irrep_list()
@@ -1195,7 +1200,7 @@ class sapa:
         print("...%s written" % filename)
 
 
-    def create_hdf5_single(self,temps, unique = True, skip_irreps = []):
+    def create_hdf5_single(self,temps, unique = True, skip_irreps = [], index=[]):
         #does not store norms, mode amplitudes
 
         if not hasattr(self, "sample"):
@@ -1206,7 +1211,10 @@ class sapa:
 
         hdf = h5py.File(f"{self.sample}_singlemode.hdf5","w")
         hdf.attrs["metadata"] = self.meta
-        tempsf = [float(x) for x in temps]
+        if index:
+            tempsf = [float(x) for x in index]
+        else:
+            tempsf = [float(x) for x in temps]
         temp_arr = np.asarray(tempsf)
         hdf["temps"] = temp_arr
         irreps = self.irrep_list()
@@ -1717,7 +1725,7 @@ class sapa:
             for line in inp_lines:
                 f.write(line)
 
-    def create_hdf5_normalise(self, temps, skip_irreps=[]):
+    def create_hdf5_normalise(self, temps, skip_irreps=[],index=[]):
 
         if not hasattr(self, "sample"):
             self.sample = input("Enter sample name to create hdf file for: ")
@@ -1728,7 +1736,10 @@ class sapa:
 
         hdf = h5py.File(f"{self.sample}.hdf5","w")
         hdf.attrs["metadata"] = self.meta
-        tempsf = [float(x) for x in temps]
+        if index:
+            tempsf = [float(x) for x in index]
+        else:
+            tempsf = [float(x) for x in temps]
         temp_arr = np.asarray(tempsf)
         hdf["temps"] = temp_arr
         irreps = self.irrep_list()
@@ -1745,7 +1756,7 @@ class sapa:
         grp.create_dataset("ycalc", (len(temps), len(df_calc["ycalc"])))
         grp.create_dataset("yobs", (len(temps), len(df_calc["ycalc"])))
         for i in range(len(temps)):
-            temp = temps[i]
+
             temp = temps[i]
             df_c = pd.read_csv(f"{self.sample}_nomodes_{temp}_ycalc.txt", sep=r"\s+", index_col=None,
                                names=["x", "ycalc"], header=None)
@@ -1821,7 +1832,7 @@ class sapa:
                 df = df.sort_values("Rwp")
                 df.index = range(len(df.index))
                 df["mode_amps"] = (df[mode_prms[0]]) ** 2
-                for j in range(1, mode_prms):
+                for j in range(1, len(mode_prms)):
                     df["mode_amps"] += (df[mode_prms[j]]) ** 2
                 df["mode_amps"] = np.sqrt(df["mode_amps"])
                 dset = grp["mode_amps"]
@@ -1843,15 +1854,15 @@ class sapa:
         self.temps = temps
         hdf.close()
 
-    def create_hdf5(self, temps, singlemode=False, occupancy=False, normalise=True, unique=True, skip_irreps=[]):
+    def create_hdf5(self, temps, singlemode=False, occupancy=False, normalise=True, unique=True, skip_irreps=[],index=[]):
         if normalise:
-            self.create_hdf5_normalise(temps, skip_irreps)
+            self.create_hdf5_normalise(temps, skip_irreps,index=index)
         elif singlemode:
-            self.create_hdf5_single(temps, unique, skip_irreps)
+            self.create_hdf5_single(temps, unique, skip_irreps,index=index)
         elif occupancy:
             self.create_hdf5_occ(temps, skip_irreps)
         else:
-            self.create_hdf5_base(temps, skip_irreps)
+            self.create_hdf5_base(temps, skip_irreps,index=index)
 
 
 
