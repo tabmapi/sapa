@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "Symmetry-Adapted PDF Analysis"
+version = "2025.0.1"
+
+dependencies = [
+    "numpy=2.3.0",
+    "matplotlib=3.10.6",
+    "h5py=3.10.0",
+    "pandas=2.3.1",
+    "seaborn=0.13.2"
+]
+
+requires-python = ">= 3.7"
+
+authors = [{name = "Tobias Bird", email = "tobias.bird@diamond.ac.uk"}]
+
+maintainers = [{name = "Tobias Bird", email = "tobias.bird@diamond.ac.uk"}]  
+
+description = "Code to perform symmetry-adapted PDF analysis with the Topas Academic software"
+
+readme = "README.md"
+
+license = "GPL-3.0-or-later"
+
+classifiers = [
+
+  "Development Status :: 4 - Beta",
+
+
+  "Intended Audience :: Materials Scientists, Crystallographers",
+
+
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Repository = "https://github.com/tabmapi/sapa/tree/main"
